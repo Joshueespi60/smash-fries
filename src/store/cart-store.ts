@@ -132,7 +132,10 @@ export const useCartStore = create<CartStore>()(
 
       setDeliveryFee: (value) => {
         set((state) => {
-          const deliveryFee = Math.max(value, 0);
+          const deliveryFee = Math.max(0, Number(value) || 0);
+          if (state.deliveryFee === deliveryFee) {
+            return state;
+          }
           const totals = computeTotals(state.items, deliveryFee);
           return {
             deliveryFee,

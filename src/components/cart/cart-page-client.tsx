@@ -25,27 +25,16 @@ type CartPageClientProps = {
 export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
   const router = useRouter();
 
-  const {
-    items,
-    deliveryFee,
-    subtotal,
-    total,
-    increaseQuantity,
-    decreaseQuantity,
-    removeItem,
-    clearCart,
-    setDeliveryFee,
-  } = useCartStore((state) => ({
-    items: state.items,
-    deliveryFee: state.deliveryFee,
-    subtotal: state.subtotal,
-    total: state.total,
-    increaseQuantity: state.increaseQuantity,
-    decreaseQuantity: state.decreaseQuantity,
-    removeItem: state.removeItem,
-    clearCart: state.clearCart,
-    setDeliveryFee: state.setDeliveryFee,
-  }));
+  const items = useCartStore((state) => state.items);
+  const deliveryFee = useCartStore((state) => state.deliveryFee);
+  const subtotal = useCartStore((state) => state.subtotal);
+  const total = useCartStore((state) => state.total);
+  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
+  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const setDeliveryFee = useCartStore((state) => state.setDeliveryFee);
+  const safeDefaultDeliveryFee = Math.max(0, Number(defaultDeliveryFee) || 0);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -55,9 +44,13 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fee = deliveryType === "delivery" ? defaultDeliveryFee : 0;
-    setDeliveryFee(fee);
-  }, [defaultDeliveryFee, deliveryType, setDeliveryFee]);
+    const nextDeliveryFee =
+      deliveryType === "delivery" ? safeDefaultDeliveryFee : 0;
+
+    if (deliveryFee !== nextDeliveryFee) {
+      setDeliveryFee(nextDeliveryFee);
+    }
+  }, [deliveryFee, deliveryType, safeDefaultDeliveryFee, setDeliveryFee]);
 
   const previewSubtotal = useMemo(() => calculateCartSubtotal(items), [items]);
   const finalSubtotal = subtotal > 0 ? subtotal : previewSubtotal;
