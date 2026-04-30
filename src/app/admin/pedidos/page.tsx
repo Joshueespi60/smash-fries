@@ -1,10 +1,22 @@
+import type { Metadata } from "next";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { OrdersTable } from "@/components/admin/orders-table";
+import { getDemoOrders } from "@/lib/smash-data";
 
-export default function AdminPedidosPage() {
+export const metadata: Metadata = {
+  title: "Admin Pedidos",
+  description: "Consulta de pedidos demo generados desde el carrito.",
+};
+
+export default async function AdminPedidosPage() {
+  const { source, orders } = await getDemoOrders();
+
   return (
     <AdminShell
       title="Admin de Pedidos"
-      description="Vista inicial para seguimiento de pedidos enviados por WhatsApp."
-    />
+      description={`Tabla de pedidos de demostracion. Fuente: ${source}.`}
+    >
+      <OrdersTable orders={orders} />
+    </AdminShell>
   );
 }

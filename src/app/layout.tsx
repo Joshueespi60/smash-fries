@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { SonnerToaster } from "@/components/shared/sonner-toaster";
+import { getBusinessSettings } from "@/lib/smash-data";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,27 +22,28 @@ export const metadata: Metadata = {
     template: "%s | Smash Fries",
   },
   description:
-    "Sitio demo académico de Smash Fries: menú digital, carrito y pedido por WhatsApp.",
+    "Sitio demo academico de Smash Fries con menu digital, carrito y pedido por WhatsApp.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { settings } = await getBusinessSettings();
+
   return (
     <html
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-zinc-950 text-zinc-100">
+      <body className="min-h-full bg-background text-foreground">
         <div className="flex min-h-screen flex-col">
           <SiteHeader />
           <main className="flex-1">{children}</main>
-          <footer className="border-t border-zinc-800 px-4 py-6 text-center text-sm text-zinc-400">
-            Smash Fries Demo Académica - Esmeraldas, Ecuador
-          </footer>
+          <SiteFooter settings={settings} />
         </div>
+        <SonnerToaster />
       </body>
     </html>
   );

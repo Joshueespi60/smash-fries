@@ -1,10 +1,22 @@
+import type { Metadata } from "next";
+import { AdminPromotionsClient } from "@/components/admin/admin-promotions-client";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { getPromotions } from "@/lib/smash-data";
 
-export default function AdminPromocionesPage() {
+export const metadata: Metadata = {
+  title: "Admin Promociones",
+  description: "Gestion demo de promociones activas/inactivas.",
+};
+
+export default async function AdminPromocionesPage() {
+  const { source, promotions } = await getPromotions();
+
   return (
     <AdminShell
       title="Admin de Promociones"
-      description="Espacio para crear, editar y activar promociones temporales de Smash Fries."
-    />
+      description={`Activa o desactiva promociones de forma visual. Fuente: ${source}.`}
+    >
+      <AdminPromotionsClient initialPromotions={promotions} />
+    </AdminShell>
   );
 }

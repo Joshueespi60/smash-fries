@@ -6,10 +6,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-let cachedClient: SupabaseClient<Database> | null = null;
+let client: SupabaseClient<Database> | null = null;
 
 if (isSupabaseConfigured) {
-  cachedClient = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+  client = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -17,8 +17,8 @@ if (isSupabaseConfigured) {
   });
 }
 
-export const supabase = cachedClient;
+export const supabase = client;
 
 export function getSupabaseClient(): SupabaseClient<Database> | null {
-  return cachedClient;
+  return client;
 }

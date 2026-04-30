@@ -2,29 +2,33 @@ import Link from "next/link";
 
 export function HomeHero() {
   return (
-    <section className="rounded-3xl border border-red-900/70 bg-gradient-to-br from-red-950/80 via-zinc-900 to-amber-950/50 p-6 md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
-        Demo universitaria
+    <section className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-card via-[#faf7f2] to-muted p-8 md:p-12">
+      <div className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/20 blur-3xl" />
+      <div className="absolute -left-14 bottom-0 size-40 rounded-full bg-accent/20 blur-3xl" />
+
+      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+        Smash Fries
       </p>
-      <h1 className="mt-3 text-3xl font-black leading-tight md:text-5xl">
-        Smash burgers crujientes, sabor intenso y experiencia digital simple.
+      <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-foreground md:text-6xl">
+        Aplastadas al momento, frescas siempre
       </h1>
-      <p className="mt-4 max-w-2xl text-sm text-zinc-200 md:text-base">
-        Proyecto académico de exposición con menú digital, carrito y envío de
-        pedido por WhatsApp.
+      <p className="mt-4 max-w-2xl text-sm text-foreground/90 md:text-base">
+        Hamburguesas smash-style para una experiencia digital moderna en tu
+        exposicion universitaria.
       </p>
-      <div className="mt-6 flex flex-wrap gap-3">
+
+      <div className="mt-7 flex flex-wrap gap-3">
         <Link
           href="/menu"
-          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+          className="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
         >
-          Ver menú
+          Ver menu
         </Link>
         <Link
-          href="/nosotros"
-          className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-800"
+          href="/carrito"
+          className="rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground transition hover:bg-secondary"
         >
-          Conocer más
+          Pedir ahora
         </Link>
       </div>
     </section>

@@ -1,10 +1,22 @@
+import type { Metadata } from "next";
+import { AdminProductsClient } from "@/components/admin/admin-products-client";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { getCatalogData } from "@/lib/smash-data";
 
-export default function AdminProductosPage() {
+export const metadata: Metadata = {
+  title: "Admin Productos",
+  description: "Gestion demo de productos con acciones locales y Supabase opcional.",
+};
+
+export default async function AdminProductosPage() {
+  const { source, products, categories } = await getCatalogData();
+
   return (
     <AdminShell
       title="Admin de Productos"
-      description="Aquí se gestionarán los productos del menú, disponibilidad y precios para la demo."
-    />
+      description={`Gestiona catalogo demo. Fuente actual: ${source}.`}
+    >
+      <AdminProductsClient initialProducts={products} categories={categories} />
+    </AdminShell>
   );
 }

@@ -1,27 +1,67 @@
-import { PageShell } from "@/components/shared/page-shell";
+import type { Metadata } from "next";
+import { PageContainer } from "@/components/shared/page-container";
+
+export const metadata: Metadata = {
+  title: "Nosotros",
+  description: "Historia, tecnica smash y valores de la marca Smash Fries.",
+};
+
+const differentials = [
+  "Carne aplastada al momento",
+  "Ingredientes frescos",
+  "Pan de calidad",
+  "Salsas propias",
+];
 
 export default function NosotrosPage() {
   return (
-    <PageShell
+    <PageContainer
       title="Nosotros"
-      description="Smash Fries es un concepto demo enfocado en experiencia digital, rapidez y sabor."
+      description="Smash Fries nace como concepto de hamburgueseria moderna para una exposicion universitaria."
     >
-      <section className="grid gap-4 md:grid-cols-2">
-        <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-          <h2 className="text-lg font-semibold">Misión</h2>
-          <p className="mt-2 text-sm text-zinc-300">
-            Diseñar una experiencia de pedido moderna para una exposición
-            universitaria en Esmeraldas, Ecuador.
+      <div className="space-y-6">
+        <section className="rounded-2xl border border-border bg-card/90 p-6">
+          <h2 className="text-2xl font-black text-foreground">Historia de Smash Fries</h2>
+          <p className="mt-3 text-sm text-muted-foreground md:text-base">
+            Smash Fries representa una marca joven inspirada en la cultura urbana,
+            la cocina rapida de calidad y la experiencia digital. Este proyecto fue
+            pensado para demostrar como un emprendimiento puede presentar menu,
+            promociones y pedidos en una web atractiva y funcional.
           </p>
-        </article>
-        <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-          <h2 className="text-lg font-semibold">Propuesta</h2>
-          <p className="mt-2 text-sm text-zinc-300">
-            Menú corto, visual fuerte y flujo de compra sencillo con salida por
-            WhatsApp como canal final.
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card/90 p-6">
+          <h2 className="text-2xl font-black text-foreground">Tecnica Smash Burger</h2>
+          <p className="mt-3 text-sm text-muted-foreground md:text-base">
+            La tecnica smash consiste en presionar la carne sobre una plancha muy
+            caliente para crear una costra crocante y caramelizada. Esto potencia
+            el sabor y mantiene el interior jugoso.
           </p>
-        </article>
-      </section>
-    </PageShell>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-black text-foreground">Diferenciales</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {differentials.map((item) => (
+              <article
+                key={item}
+                className="rounded-2xl border border-border bg-card/90 p-4 text-foreground/90"
+              >
+                {item}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-gradient-to-br from-card to-accent/12 p-6">
+          <h2 className="text-2xl font-black text-foreground">Marca y confianza</h2>
+          <p className="mt-3 text-sm text-muted-foreground md:text-base">
+            La identidad visual combina base clara tipo concreto, acentos naranja y
+            rojo para llamados a la accion y contraste limpio en tipografia. El objetivo es ofrecer
+            una imagen premium, juvenil y confiable para la exposicion.
+          </p>
+        </section>
+      </div>
+    </PageContainer>
   );
 }

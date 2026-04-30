@@ -1,59 +1,108 @@
-export type ProductCategory = "smash" | "sides" | "drinks" | "combos";
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  sort_order: number;
+  created_at?: string;
+};
 
-export type ProductExtra = {
+export type Addon = {
   id: string;
   name: string;
   price: number;
+  icon: string | null;
+  is_available: boolean;
+  created_at?: string;
 };
 
 export type Product = {
   id: string;
-  slug: string;
+  category_id: string | null;
   name: string;
+  slug: string;
   description: string;
+  ingredients: string | null;
   price: number;
-  imageUrl: string;
-  category: ProductCategory;
-  isAvailable: boolean;
-  extras?: ProductExtra[];
+  image_url: string | null;
+  is_available: boolean;
+  is_featured: boolean;
+  sort_order: number;
+  created_at?: string;
+  category?: Category | null;
+  addons?: Addon[];
 };
 
 export type Promotion = {
   id: string;
   title: string;
   description: string;
-  discountPercentage: number;
-  isActive: boolean;
+  price: number | null;
+  image_url: string | null;
+  is_active: boolean;
+  created_at?: string;
 };
 
 export type Review = {
   id: string;
-  author: string;
+  customer_name: string;
   rating: number;
   comment: string;
-  createdAt: string;
+  is_approved: boolean;
+  created_at?: string;
 };
 
-export type DaySchedule = {
-  open: string;
-  close: string;
-  isClosed?: boolean;
+export type BusinessSettings = {
+  id: string;
+  business_name: string;
+  slogan: string;
+  whatsapp_number: string;
+  address: string | null;
+  city: string;
+  opening_time: string;
+  closing_time: string;
+  delivery_fee: number;
+  instagram_url: string | null;
+  facebook_url: string | null;
+  tiktok_url: string | null;
+  map_url: string | null;
+  created_at?: string;
 };
 
-export type BusinessHours = Record<number, DaySchedule>;
-
-export type BusinessStatus = {
-  isOpen: boolean;
-  label: string;
+export type CartAddon = {
+  id: string;
+  name: string;
+  price: number;
 };
 
 export type CartItem = {
-  lineId: string;
-  productId: string;
+  line_id: string;
+  product_id: string;
   slug: string;
   name: string;
-  imageUrl: string;
-  basePrice: number;
+  unit_price: number;
+  image_url: string | null;
   quantity: number;
-  selectedExtras: ProductExtra[];
+  addons: CartAddon[];
+};
+
+export type DemoOrder = {
+  id: string;
+  customer_name: string;
+  customer_phone: string | null;
+  delivery_address: string | null;
+  order_summary: string;
+  total: number;
+  status: string;
+  created_at?: string;
+};
+
+export type DeliveryType = "retiro" | "delivery";
+
+export type CustomerOrderData = {
+  customerName: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  deliveryType: DeliveryType;
+  observations: string;
 };

@@ -1,13 +1,22 @@
-import { CartSummary } from "@/components/cart/cart-summary";
-import { PageShell } from "@/components/shared/page-shell";
+import type { Metadata } from "next";
+import { CartPageClient } from "@/components/cart/cart-page-client";
+import { PageContainer } from "@/components/shared/page-container";
+import { getBusinessSettings } from "@/lib/smash-data";
 
-export default function CarritoPage() {
+export const metadata: Metadata = {
+  title: "Carrito",
+  description: "Resumen del pedido, datos del cliente y envio por WhatsApp.",
+};
+
+export default async function CarritoPage() {
+  const { settings } = await getBusinessSettings();
+
   return (
-    <PageShell
+    <PageContainer
       title="Carrito"
-      description="Revisa tus productos, ajusta cantidades y genera tu pedido por WhatsApp."
+      description="Ajusta cantidades, completa tus datos y envia tu pedido por WhatsApp."
     >
-      <CartSummary />
-    </PageShell>
+      <CartPageClient defaultDeliveryFee={settings.delivery_fee} />
+    </PageContainer>
   );
 }

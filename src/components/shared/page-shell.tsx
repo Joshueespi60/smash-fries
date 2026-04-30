@@ -19,7 +19,7 @@ export function PageShell({
       <header className="space-y-2">
         <h1 className="text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
         {description ? (
-          <p className="max-w-3xl text-sm text-zinc-300 md:text-base">
+          <p className="max-w-3xl text-sm text-muted-foreground md:text-base">
             {description}
           </p>
         ) : null}

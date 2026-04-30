@@ -1,92 +1,29 @@
-import type { BusinessHours, BusinessStatus, DaySchedule } from "@/types";
-
-const dayNames = [
-  "domingo",
-  "lunes",
-  "martes",
-  "miércoles",
-  "jueves",
-  "viernes",
-  "sábado",
-];
-
-function toMinutes(hourText: string): number {
-  const [hours, minutes] = hourText.split(":").map(Number);
+function toMinutes(timeValue: string): number {
+  const [hoursRaw, minutesRaw] = timeValue.split(":");
+  const hours = Number.parseInt(hoursRaw ?? "0", 10);
+  const minutes = Number.parseInt(minutesRaw ?? "0", 10);
   return hours * 60 + minutes;
 }
 
-function isScheduleOpen(schedule: DaySchedule, nowMinutes: number): boolean {
-  if (schedule.isClosed) {
-    return false;
+export function isBusinessOpen(opening_time: string, closing_time: string): boolean {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const openMinutes = toMinutes(opening_time);
+  const closeMinutes = toMinutes(closing_time);
+
+  if (closeMinutes > openMinutes) {
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
   }
-  const open = toMinutes(schedule.open);
-  const close = toMinutes(schedule.close);
-  return nowMinutes >= open && nowMinutes < close;
+
+  return currentMinutes >= openMinutes || currentMinutes < closeMinutes;
 }
 
-function findNextOpening(
-  hours: BusinessHours,
-  currentDay: number,
-  nowMinutes: number
-): { day: number; time: string } | null {
-  for (let offset = 0; offset < 7; offset += 1) {
-    const day = (currentDay + offset) % 7;
-    const schedule = hours[day];
-    if (!schedule || schedule.isClosed) {
-      continue;
-    }
-
-    const openTime = toMinutes(schedule.open);
-    if (offset === 0 && openTime <= nowMinutes) {
-      continue;
-    }
-
-    return { day, time: schedule.open };
-  }
-
-  return null;
-}
-
-export function getBusinessStatus(
-  hours: BusinessHours,
-  currentDate = new Date()
-): BusinessStatus {
-  const day = currentDate.getDay();
-  const schedule = hours[day];
-  const nowMinutes = currentDate.getHours() * 60 + currentDate.getMinutes();
-
-  if (!schedule || schedule.isClosed) {
-    const nextOpen = findNextOpening(hours, day, nowMinutes);
-    if (nextOpen) {
-      return {
-        isOpen: false,
-        label: `Cerrado ahora. Abre el ${dayNames[nextOpen.day]} a las ${nextOpen.time}.`,
-      };
-    }
-
-    return {
-      isOpen: false,
-      label: "Cerrado. No hay horarios configurados.",
-    };
-  }
-
-  if (isScheduleOpen(schedule, nowMinutes)) {
-    return {
-      isOpen: true,
-      label: `Abierto ahora hasta las ${schedule.close}.`,
-    };
-  }
-
-  const nextOpen = findNextOpening(hours, day, nowMinutes);
-  if (nextOpen) {
-    return {
-      isOpen: false,
-      label: `Cerrado ahora. Abre el ${dayNames[nextOpen.day]} a las ${nextOpen.time}.`,
-    };
-  }
-
-  return {
-    isOpen: false,
-    label: "Cerrado por el momento.",
-  };
+export function getBusinessStatusLabel(
+  opening_time: string,
+  closing_time: string
+): string {
+  return isBusinessOpen(opening_time, closing_time)
+    ? `Abierto ahora (cierra ${closing_time})`
+    : `Cerrado ahora (abre ${opening_time})`;
 }

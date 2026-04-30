@@ -1,34 +1,108 @@
-import Link from "next/link";
+"use client";
 
-const navLinks = [
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, ShoppingCart, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
+
+const navigation = [
   { href: "/", label: "Inicio" },
-  { href: "/menu", label: "Menú" },
+  { href: "/menu", label: "Menu" },
   { href: "/nosotros", label: "Nosotros" },
-  { href: "/ubicacion", label: "Ubicación" },
-  { href: "/carrito", label: "Carrito" },
-  { href: "/admin", label: "Admin" },
+  { href: "/ubicacion", label: "Ubicacion" },
 ];
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  const items = useCartStore((state) => state.items);
+  const cartCount = useMemo(
+    () => items.reduce((acc, item) => acc + item.quantity, 0),
+    [items]
+  );
+
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4">
-        <Link href="/" className="text-lg font-extrabold tracking-tight">
-          <span className="text-red-500">Smash</span>{" "}
-          <span className="text-amber-300">Fries</span>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-card/92 shadow-sm backdrop-blur">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
+        <Link href="/" className="text-lg font-black tracking-tight">
+          <span className="text-primary">Smash</span>{" "}
+          <span className="text-accent">Fries</span>
         </Link>
-        <nav className="flex flex-wrap items-center gap-2">
-          {navLinks.map((link) => (
+
+        <nav className="hidden items-center gap-1 md:flex">
+          {navigation.map((item) => (
             <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-lg px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-zinc-800"
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm text-foreground/90 transition hover:bg-secondary",
+                pathname === item.href && "bg-secondary text-foreground"
+              )}
             >
-              {link.label}
+              {item.label}
             </Link>
           ))}
         </nav>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/carrito"
+            className="relative rounded-lg border border-border p-2 text-foreground transition hover:bg-secondary"
+            aria-label="Ir al carrito"
+          >
+            <ShoppingCart className="size-5" />
+            {cartCount > 0 ? (
+              <span className="absolute -right-2 -top-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-primary-foreground">
+                {cartCount}
+              </span>
+            ) : null}
+          </Link>
+
+          <Link
+            href="/carrito"
+            className="hidden rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 md:inline-flex"
+          >
+            Pedir ahora
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            className="rounded-lg border border-border p-2 text-foreground transition hover:bg-secondary md:hidden"
+            aria-label="Abrir menu"
+          >
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        </div>
       </div>
+
+      {open ? (
+        <nav className="space-y-1 border-t border-border bg-card px-4 py-3 md:hidden">
+          {navigation.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "block rounded-lg px-3 py-2 text-sm text-foreground/90 transition hover:bg-secondary",
+                pathname === item.href && "bg-secondary text-foreground"
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <Link
+            href="/carrito"
+            onClick={() => setOpen(false)}
+            className="mt-2 inline-flex rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Pedir ahora
+          </Link>
+        </nav>
+      ) : null}
     </header>
   );
 }
