@@ -5,7 +5,7 @@ import { getBusinessSettings } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
   title: "Carrito",
-  description: "Resumen del pedido, datos del cliente y envio por WhatsApp.",
+  description: "Resumen del pedido, datos del cliente y envío por WhatsApp.",
 };
 
 export default async function CarritoPage() {
@@ -14,7 +14,7 @@ export default async function CarritoPage() {
   return (
     <PageContainer
       title="Carrito"
-      description="Ajusta cantidades, completa tus datos y envia tu pedido por WhatsApp."
+      description="Ajusta cantidades, completa tus datos y envía tu pedido por WhatsApp."
     >
       <CartPageClient defaultDeliveryFee={settings.delivery_fee} />
     </PageContainer>

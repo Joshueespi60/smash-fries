@@ -6,7 +6,13 @@ type SiteFooterProps = {
 };
 
 export function SiteFooter({ settings }: SiteFooterProps) {
-  const whatsappNumber = settings.whatsapp_number.replace(/\D/g, "");
+  const envWhatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim();
+  const rawWhatsappNumber =
+    envWhatsappNumber && envWhatsappNumber.length > 0
+      ? envWhatsappNumber
+      : settings.whatsapp_number;
+  const whatsappNumber = rawWhatsappNumber.replace(/\D/g, "");
+  const locationText = [settings.address, settings.city].filter(Boolean).join(", ");
 
   return (
     <footer className="border-t border-border bg-card/90">
@@ -25,17 +31,19 @@ export function SiteFooter({ settings }: SiteFooterProps) {
 
         <section>
           <h4 className="font-semibold text-foreground">Contacto</h4>
-          <p className="mt-2 text-sm text-muted-foreground/80">
-            {settings.address}, {settings.city}
-          </p>
-          <a
-            href={`https://wa.me/${whatsappNumber}`}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 inline-flex text-sm font-medium text-accent hover:text-accent/90"
-          >
-            WhatsApp: {settings.whatsapp_number}
-          </a>
+          <p className="mt-2 text-sm text-muted-foreground/80">{locationText}</p>
+          {whatsappNumber ? (
+            <a
+              href={`https://wa.me/${whatsappNumber}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex text-sm font-medium text-accent hover:text-accent/90"
+            >
+              WhatsApp: {rawWhatsappNumber}
+            </a>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground/80">WhatsApp no configurado</p>
+          )}
         </section>
 
         <section>

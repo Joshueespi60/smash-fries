@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2 } from "lucide-react";
@@ -12,11 +13,21 @@ import {
   buildWhatsAppMessage,
   calculateCartSubtotal,
 } from "@/lib/whatsapp";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import type { DeliveryType } from "@/types";
 
 const LAST_ORDER_KEY = "smash-fries-last-order";
+const DELIVERY_TYPE_LABELS: Record<DeliveryType, string> = {
+  retiro: "Retiro en local",
+  delivery: "Entrega a domicilio",
+};
+
+type FormErrors = {
+  customerName?: string;
+  customerPhone?: string;
+  deliveryAddress?: string;
+};
 
 type CartPageClientProps = {
   defaultDeliveryFee: number;
@@ -27,8 +38,6 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
 
   const items = useCartStore((state) => state.items);
   const deliveryFee = useCartStore((state) => state.deliveryFee);
-  const subtotal = useCartStore((state) => state.subtotal);
-  const total = useCartStore((state) => state.total);
   const increaseQuantity = useCartStore((state) => state.increaseQuantity);
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -41,39 +50,70 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("retiro");
   const [observations, setObservations] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const isDelivery = deliveryType === "delivery";
+  const resolvedDeliveryFee = isDelivery ? safeDefaultDeliveryFee : 0;
 
   useEffect(() => {
-    const nextDeliveryFee =
-      deliveryType === "delivery" ? safeDefaultDeliveryFee : 0;
-
-    if (deliveryFee !== nextDeliveryFee) {
-      setDeliveryFee(nextDeliveryFee);
+    if (deliveryFee !== resolvedDeliveryFee) {
+      setDeliveryFee(resolvedDeliveryFee);
     }
-  }, [deliveryFee, deliveryType, safeDefaultDeliveryFee, setDeliveryFee]);
+  }, [deliveryFee, resolvedDeliveryFee, setDeliveryFee]);
 
-  const previewSubtotal = useMemo(() => calculateCartSubtotal(items), [items]);
-  const finalSubtotal = subtotal > 0 ? subtotal : previewSubtotal;
-  const finalTotal = total > 0 || deliveryFee > 0 ? total : finalSubtotal + deliveryFee;
+  const finalSubtotal = useMemo(() => calculateCartSubtotal(items), [items]);
+  const finalTotal = finalSubtotal + resolvedDeliveryFee;
+
+  const updateError = (field: keyof FormErrors, value?: string) => {
+    setErrors((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleClearCart = () => {
+    const confirmed = window.confirm("¿Deseas vaciar todo el carrito?");
+    if (!confirmed) {
+      return;
+    }
+
+    clearCart();
+    toast.success("Carrito vaciado");
+  };
 
   const handleSubmitOrder = async () => {
     if (items.length === 0) {
-      toast.error("Tu carrito esta vacio");
+      toast.error("Tu carrito está vacío");
       return;
     }
 
-    if (!customerName.trim() || !customerPhone.trim()) {
-      toast.error("Nombre y telefono son obligatorios");
+    const nextErrors: FormErrors = {};
+
+    if (!customerName.trim()) {
+      nextErrors.customerName = "Ingresa tu nombre.";
+    }
+
+    if (!customerPhone.trim()) {
+      nextErrors.customerPhone = "Ingresa tu teléfono.";
+    }
+
+    if (isDelivery && !deliveryAddress.trim()) {
+      nextErrors.deliveryAddress = "Ingresa tu dirección para la entrega a domicilio.";
+    }
+
+    setErrors(nextErrors);
+
+    const firstError =
+      nextErrors.customerName ??
+      nextErrors.customerPhone ??
+      nextErrors.deliveryAddress;
+
+    if (firstError) {
+      toast.error(firstError);
       return;
     }
 
-    if (deliveryType === "delivery" && !deliveryAddress.trim()) {
-      toast.error("La direccion es obligatoria para delivery");
-      return;
-    }
-
-    const safeAddress =
-      deliveryType === "retiro" ? "Retiro en local" : deliveryAddress.trim();
+    const safeAddress = isDelivery ? deliveryAddress.trim() : "No aplica";
 
     setSubmitting(true);
 
@@ -87,7 +127,11 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
           deliveryType,
           observations: observations.trim(),
         },
-        finalTotal
+        {
+          subtotal: finalSubtotal,
+          deliveryFee: resolvedDeliveryFee,
+          total: finalTotal,
+        }
       );
 
       const whatsappLink = buildWhatsAppLink(message);
@@ -101,7 +145,7 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
         observations: observations.trim(),
         items,
         subtotal: finalSubtotal,
-        deliveryFee,
+        deliveryFee: resolvedDeliveryFee,
         total: finalTotal,
         createdAt: new Date().toISOString(),
       };
@@ -119,14 +163,14 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
       if (saveResult.saved) {
         toast.success("Pedido demo guardado en Supabase");
       } else if (saveResult.source === "supabase") {
-        toast.error("No se pudo guardar en Supabase, pero WhatsApp continua");
+        toast.error("No se pudo guardar en Supabase, pero WhatsApp continúa");
       }
 
       toast.success("Pedido enviado por WhatsApp");
       clearCart();
       router.push("/confirmacion");
     } catch {
-      toast.error("Ocurrio un error al enviar el pedido");
+      toast.error("Ocurrió un error al enviar el pedido");
     } finally {
       setSubmitting(false);
     }
@@ -135,15 +179,33 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
   if (items.length === 0) {
     return (
       <EmptyState
-        title="Carrito vacio"
-        description="Agrega productos desde el menu para iniciar tu pedido."
+        title="Tu carrito está vacío"
+        description="Agrega productos del menú para completar tu pedido."
+        action={
+          <Link
+            href="/menu"
+            className="inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+          >
+            Ver menú
+          </Link>
+        }
       />
     );
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-      <section className="space-y-3">
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-black text-foreground">Productos del carrito</h2>
+          <Link
+            href="/menu"
+            className="inline-flex rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
+          >
+            Seguir comprando
+          </Link>
+        </div>
+
         {items.map((item) => {
           const addonsText = item.addons.map((addon) => addon.name).join(", ");
           return (
@@ -177,8 +239,12 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
                 <div className="inline-flex items-center rounded-lg border border-border">
                   <button
                     type="button"
+                    disabled={item.quantity <= 1}
                     onClick={() => decreaseQuantity(item.line_id)}
-                    className="p-1.5 text-foreground hover:bg-secondary"
+                    className={cn(
+                      "p-1.5 text-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
+                      item.quantity <= 1 && "text-muted-foreground"
+                    )}
                   >
                     <Minus className="size-4" />
                   </button>
@@ -197,9 +263,17 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
             </article>
           );
         })}
+
+        <button
+          type="button"
+          onClick={handleClearCart}
+          className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-secondary"
+        >
+          Vaciar carrito
+        </button>
       </section>
 
-      <aside className="space-y-4 rounded-2xl border border-border bg-card/90 p-5">
+      <aside className="h-fit space-y-4 rounded-2xl border border-border bg-card/90 p-5 lg:sticky lg:top-24">
         <h2 className="text-xl font-black text-foreground">Resumen del pedido</h2>
         <div className="space-y-2 text-sm text-muted-foreground">
           <p className="flex justify-between">
@@ -207,56 +281,109 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
             <span>{formatCurrency(finalSubtotal)}</span>
           </p>
           <p className="flex justify-between">
-            <span>Envio</span>
-            <span>{formatCurrency(deliveryFee)}</span>
+            <span>Envío</span>
+            <span>{formatCurrency(resolvedDeliveryFee)}</span>
           </p>
-          <p className="flex justify-between text-base font-black text-accent">
+          <p className="flex justify-between text-lg font-black text-accent">
             <span>Total</span>
             <span>{formatCurrency(finalTotal)}</span>
           </p>
         </div>
+
+        <p className="text-xs text-muted-foreground">
+          El pedido será confirmado por WhatsApp.
+        </p>
 
         <div className="space-y-3 border-t border-border pt-4">
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Nombre</span>
             <input
               value={customerName}
-              onChange={(event) => setCustomerName(event.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground outline-none focus:border-primary"
+              onChange={(event) => {
+                setCustomerName(event.target.value);
+                updateError("customerName");
+              }}
+              className={cn(
+                "w-full rounded-lg border bg-card px-3 py-2 text-foreground outline-none transition focus:border-primary",
+                errors.customerName ? "border-destructive focus:border-destructive" : "border-border"
+              )}
             />
+            {errors.customerName ? (
+              <p className="text-xs text-destructive">{errors.customerName}</p>
+            ) : null}
           </label>
 
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Telefono</span>
+            <span className="text-muted-foreground">Teléfono</span>
             <input
               value={customerPhone}
-              onChange={(event) => setCustomerPhone(event.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground outline-none focus:border-primary"
+              onChange={(event) => {
+                setCustomerPhone(event.target.value);
+                updateError("customerPhone");
+              }}
+              className={cn(
+                "w-full rounded-lg border bg-card px-3 py-2 text-foreground outline-none transition focus:border-primary",
+                errors.customerPhone ? "border-destructive focus:border-destructive" : "border-border"
+              )}
             />
+            {errors.customerPhone ? (
+              <p className="text-xs text-destructive">{errors.customerPhone}</p>
+            ) : null}
           </label>
 
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Tipo de entrega</span>
             <select
               value={deliveryType}
-              onChange={(event) => setDeliveryType(event.target.value as DeliveryType)}
+              onChange={(event) => {
+                const nextType = event.target.value as DeliveryType;
+                setDeliveryType(nextType);
+
+                if (nextType === "retiro") {
+                  updateError("deliveryAddress");
+                }
+              }}
               className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground outline-none focus:border-primary"
             >
-              <option value="retiro">Retiro</option>
-              <option value="delivery">Delivery</option>
+              <option value="retiro">{DELIVERY_TYPE_LABELS.retiro}</option>
+              <option value="delivery">{DELIVERY_TYPE_LABELS.delivery}</option>
             </select>
           </label>
 
-          <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Direccion</span>
-            <textarea
-              value={deliveryAddress}
-              onChange={(event) => setDeliveryAddress(event.target.value)}
-              rows={2}
-              placeholder={deliveryType === "delivery" ? "Ej: Barrio X, calle Y" : "No aplica"}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground outline-none focus:border-primary"
-            />
-          </label>
+          {isDelivery ? (
+            <label className="space-y-1 text-sm">
+              <span className="text-muted-foreground">Dirección</span>
+              <textarea
+                value={deliveryAddress}
+                onChange={(event) => {
+                  setDeliveryAddress(event.target.value);
+                  updateError("deliveryAddress");
+                }}
+                rows={2}
+                required
+                placeholder="Ej: Barrio X, calle Y, referencia"
+                className={cn(
+                  "w-full rounded-lg border bg-card px-3 py-2 text-foreground outline-none transition focus:border-primary",
+                  errors.deliveryAddress
+                    ? "border-destructive focus:border-destructive"
+                    : "border-border"
+                )}
+              />
+              {errors.deliveryAddress ? (
+                <p className="text-xs text-destructive">{errors.deliveryAddress}</p>
+              ) : null}
+            </label>
+          ) : (
+            <label className="space-y-1 text-sm">
+              <span className="text-muted-foreground">Dirección</span>
+              <input
+                value="No aplica"
+                disabled
+                readOnly
+                className="w-full cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-2 text-muted-foreground outline-none"
+              />
+            </label>
+          )}
 
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Observaciones</span>

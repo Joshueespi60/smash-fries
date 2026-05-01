@@ -3,15 +3,15 @@ import { OrderConfirmationCard } from "@/components/cart/order-confirmation";
 import { PageContainer } from "@/components/shared/page-container";
 
 export const metadata: Metadata = {
-  title: "Confirmacion",
-  description: "Pantalla de confirmacion del pedido demo por WhatsApp.",
+  title: "Confirmación",
+  description: "Pantalla de confirmación del pedido por WhatsApp.",
 };
 
 export default function ConfirmacionPage() {
   return (
     <PageContainer
-      title="Confirmacion"
-      description="Tu pedido demo fue generado y enviado a WhatsApp correctamente."
+      title="Confirmación"
+      description="Tu pedido fue generado y enviado por WhatsApp correctamente."
     >
       <OrderConfirmationCard />
     </PageContainer>

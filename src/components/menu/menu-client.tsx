@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProductCard } from "@/components/menu/product-card";
+import { normalizeSearchText } from "@/lib/utils";
 import type { Category, Product } from "@/types";
 
 type MenuClientProps = {
@@ -17,15 +18,18 @@ export function MenuClient({ categories, products }: MenuClientProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
   const filtered = useMemo(() => {
+    const normalizedQuery = normalizeSearchText(query.trim());
+
     return products.filter((product) => {
       const byCategory =
         activeCategory === "all" || product.category_id === activeCategory;
 
-      const normalized = query.trim().toLowerCase();
+      const normalizedName = normalizeSearchText(product.name);
+      const normalizedDescription = normalizeSearchText(product.description);
       const byQuery =
-        normalized.length === 0 ||
-        product.name.toLowerCase().includes(normalized) ||
-        product.description.toLowerCase().includes(normalized);
+        normalizedQuery.length === 0 ||
+        normalizedName.includes(normalizedQuery) ||
+        normalizedDescription.includes(normalizedQuery);
 
       return byCategory && byQuery;
     });

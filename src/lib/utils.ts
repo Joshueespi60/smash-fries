@@ -14,6 +14,23 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
+const PRODUCT_NAME_FIXES: Record<string, string> = {
+  "La Clasica Smash": "La Clásica Smash",
+  "Papas Fritas Rusticas": "Papas Fritas Rústicas",
+};
+
+export function normalizeProductName(name: string): string {
+  const normalized = name.trim();
+  return PRODUCT_NAME_FIXES[normalized] ?? normalized;
+}
+
+export function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 export function toNumber(value: number | string | null | undefined): number {
   if (typeof value === "number") {
     return value;

@@ -9,7 +9,7 @@ import {
   fallbackReviews,
 } from "@/data/fallback-data";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
-import { toNumber } from "@/lib/utils";
+import { normalizeProductName, toNumber } from "@/lib/utils";
 import type {
   Addon,
   BusinessSettings,
@@ -61,7 +61,7 @@ function mapProduct(row: ProductRow): Product {
   return {
     id: row.id,
     category_id: row.category_id,
-    name: row.name,
+    name: normalizeProductName(row.name),
     slug: row.slug,
     description: row.description,
     ingredients: row.ingredients,

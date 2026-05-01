@@ -1,5 +1,16 @@
-import type { CartItem, CustomerOrderData } from "@/types";
+import type { CartItem, CustomerOrderData, DeliveryType } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+
+const DELIVERY_TYPE_LABELS: Record<DeliveryType, string> = {
+  retiro: "Retiro en local",
+  delivery: "Entrega a domicilio",
+};
+
+type WhatsAppTotals = {
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+};
 
 export function calculateCartSubtotal(cart: CartItem[]): number {
   return cart.reduce((total, item) => {
@@ -11,45 +22,51 @@ export function calculateCartSubtotal(cart: CartItem[]): number {
 export function buildWhatsAppMessage(
   cart: CartItem[],
   customerData: CustomerOrderData,
-  total: number
+  totals: WhatsAppTotals
 ): string {
-  const subtotal = calculateCartSubtotal(cart);
-  const shipping = Math.max(total - subtotal, 0);
+  const deliveryTypeLabel = DELIVERY_TYPE_LABELS[customerData.deliveryType];
+  const safeObservations = customerData.observations || "Ninguna.";
 
-  const lines: string[] = [
-    "Hola Smash Fries, quiero hacer este pedido:",
+  const lines: Array<string | null> = [
+    "Hola, quiero hacer un pedido en Smash Fries.",
     "",
-    "*Datos del cliente*",
-    `Nombre: ${customerData.customerName}`,
-    `Telefono: ${customerData.customerPhone}`,
-    `Direccion: ${customerData.deliveryAddress || "No aplica"}`,
-    `Tipo de entrega: ${customerData.deliveryType}`,
-    `Observaciones: ${customerData.observations || "Ninguna"}`,
+    `Cliente: ${customerData.customerName}`,
+    `Teléfono: ${customerData.customerPhone}`,
+    `Tipo de entrega: ${deliveryTypeLabel}`,
+    customerData.deliveryType === "delivery"
+      ? `Dirección: ${customerData.deliveryAddress}`
+      : null,
     "",
-    "*Productos*",
+    "Pedido:",
   ];
 
   cart.forEach((item, index) => {
+    const addonsTotal = item.addons.reduce((sum, addon) => sum + addon.price, 0);
+    const unitWithAddons = item.unit_price + addonsTotal;
+    const lineTotal = unitWithAddons * item.quantity;
     const addonsText =
       item.addons.length > 0
-        ? `\n  Extras: ${item.addons
-            .map((addon) => `${addon.name} (${formatCurrency(addon.price)})`)
-            .join(", ")}`
-        : "";
+        ? `Extras: ${item.addons.map((addon) => addon.name).join(", ")}`
+        : null;
 
-    lines.push(
-      `${index + 1}. ${item.quantity} x ${item.name} - ${formatCurrency(
-        item.unit_price
-      )}${addonsText}`
-    );
+    lines.push(`${index + 1}. ${item.quantity}x ${item.name} - ${formatCurrency(lineTotal)}`);
+    if (item.quantity > 1) {
+      lines.push(`Precio unitario: ${formatCurrency(unitWithAddons)} c/u`);
+    }
+    if (addonsText) {
+      lines.push(addonsText);
+    }
+    lines.push("");
   });
 
+  lines.push("Observaciones:");
+  lines.push(safeObservations);
   lines.push("");
-  lines.push(`Subtotal: ${formatCurrency(subtotal)}`);
-  lines.push(`Envio: ${formatCurrency(shipping)}`);
-  lines.push(`Total: ${formatCurrency(total)}`);
+  lines.push(`Subtotal: ${formatCurrency(totals.subtotal)}`);
+  lines.push(`Envío: ${formatCurrency(totals.deliveryFee)}`);
+  lines.push(`Total: ${formatCurrency(totals.total)}`);
 
-  return lines.join("\n");
+  return lines.filter((line): line is string => line !== null).join("\n");
 }
 
 export function buildWhatsAppLink(message: string): string {

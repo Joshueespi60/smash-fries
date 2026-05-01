@@ -105,13 +105,11 @@ export const useCartStore = create<CartStore>()(
 
       decreaseQuantity: (lineId) => {
         set((state) => {
-          const nextItems = state.items
-            .map((item) =>
-              item.line_id === lineId
-                ? { ...item, quantity: Math.max(0, item.quantity - 1) }
-                : item
-            )
-            .filter((item) => item.quantity > 0);
+          const nextItems = state.items.map((item) =>
+            item.line_id === lineId
+              ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+              : item
+          );
 
           const totals = computeTotals(nextItems, state.deliveryFee);
           return {
