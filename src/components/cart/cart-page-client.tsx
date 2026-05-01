@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ProductVisual } from "@/components/shared/product-visual";
 import { saveDemoOrder } from "@/lib/smash-data";
 import {
+  buildOrderCode,
   buildWhatsAppLink,
   buildWhatsAppMessage,
   calculateCartSubtotal,
@@ -113,7 +114,13 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
       return;
     }
 
-    const safeAddress = isDelivery ? deliveryAddress.trim() : "No aplica";
+    const safeCustomerName = customerName.trim();
+    const safeCustomerPhone = customerPhone.trim();
+    const safeAddress = isDelivery ? deliveryAddress.trim() : "";
+    const safeObservations = observations.trim();
+    const orderDate = new Date();
+    const createdAt = orderDate.toISOString();
+    const orderCode = buildOrderCode(orderDate);
 
     setSubmitting(true);
 
@@ -121,40 +128,42 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
       const message = buildWhatsAppMessage(
         items,
         {
-          customerName: customerName.trim(),
-          customerPhone: customerPhone.trim(),
+          customerName: safeCustomerName,
+          customerPhone: safeCustomerPhone,
           deliveryAddress: safeAddress,
           deliveryType,
-          observations: observations.trim(),
+          observations: safeObservations,
         },
         {
           subtotal: finalSubtotal,
           deliveryFee: resolvedDeliveryFee,
           total: finalTotal,
-        }
+        },
+        orderCode
       );
 
       const whatsappLink = buildWhatsAppLink(message);
       window.open(whatsappLink, "_blank", "noopener,noreferrer");
 
       const summaryForStorage = {
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
+        customerName: safeCustomerName,
+        customerPhone: safeCustomerPhone,
         deliveryAddress: safeAddress,
         deliveryType,
-        observations: observations.trim(),
+        observations: safeObservations,
         items,
         subtotal: finalSubtotal,
         deliveryFee: resolvedDeliveryFee,
         total: finalTotal,
-        createdAt: new Date().toISOString(),
+        createdAt,
+        orderCode,
       };
 
       localStorage.setItem(LAST_ORDER_KEY, JSON.stringify(summaryForStorage));
 
       const saveResult = await saveDemoOrder({
-        customer_name: customerName.trim(),
-        customer_phone: customerPhone.trim(),
+        customer_name: safeCustomerName,
+        customer_phone: safeCustomerPhone,
         delivery_address: safeAddress,
         order_summary: message,
         total: finalTotal,

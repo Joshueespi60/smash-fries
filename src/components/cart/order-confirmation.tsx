@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { buildOrderCode } from "@/lib/whatsapp";
 import { formatCurrency } from "@/lib/utils";
 import type { CartItem, DeliveryType } from "@/types";
 
@@ -52,16 +53,6 @@ function getSafeDate(value?: string): Date {
   return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 
-function buildOrderCode(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hour = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `SF-${year}${month}${day}-${hour}${minutes}`;
-}
-
 function toSafeNumber(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
@@ -101,10 +92,8 @@ export function OrderConfirmationCard() {
   const safeCustomerPhone = order?.customerPhone?.trim() || "No especificado";
   const safeDeliveryType: DeliveryType = order?.deliveryType === "delivery" ? "delivery" : "retiro";
   const safeDeliveryLabel = DELIVERY_TYPE_LABELS[safeDeliveryType];
-  const safeDeliveryAddress =
-    safeDeliveryType === "delivery"
-      ? order?.deliveryAddress?.trim() || "No especificado"
-      : "No aplica";
+  const safeDeliveryAddress = order?.deliveryAddress?.trim() || "";
+  const safeObservations = order?.observations?.trim() || "";
   const safeItems = Array.isArray(order?.items) ? order.items : [];
 
   return (
@@ -159,9 +148,11 @@ export function OrderConfirmationCard() {
                 <p>
                   <strong>Tipo de entrega:</strong> {safeDeliveryLabel}
                 </p>
-                <p>
-                  <strong>Dirección:</strong> {safeDeliveryAddress}
-                </p>
+                {safeDeliveryType === "delivery" ? (
+                  <p>
+                    <strong>Dirección:</strong> {safeDeliveryAddress || "No especificada"}
+                  </p>
+                ) : null}
               </div>
             </section>
           </div>
@@ -207,6 +198,15 @@ export function OrderConfirmationCard() {
             )}
           </section>
 
+          {safeObservations ? (
+            <section className="rounded-2xl border border-border bg-muted/40 p-4">
+              <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                Observaciones
+              </h2>
+              <p className="mt-2 text-sm text-foreground">{safeObservations}</p>
+            </section>
+          ) : null}
+
           <section className="rounded-2xl border border-border bg-muted/40 p-4">
             <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Totales
@@ -221,7 +221,7 @@ export function OrderConfirmationCard() {
                 <span>{formatCurrency(toSafeNumber(order.deliveryFee))}</span>
               </p>
               <p className="flex items-center justify-between text-base font-black text-accent">
-                <span>Total</span>
+                <span>Total a pagar</span>
                 <span>{formatCurrency(toSafeNumber(order.total))}</span>
               </p>
             </div>
