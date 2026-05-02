@@ -1,3 +1,27 @@
+# Instrucciones para Codex: actualizar el README principal de Smash Fries
+
+## Objetivo
+
+Actualizar el archivo `README.md` que está en la raíz del proyecto para que deje de mostrar el texto genérico de Next.js y pase a ser un README profesional, completo y en español para el proyecto **Smash Fries**.
+
+Este README debe explicar claramente de qué trata el sitio web, qué tecnologías usa, cómo se ejecuta localmente, cómo se configura Supabase, cómo funciona el flujo demo de pedidos, qué variables de entorno requiere y qué medidas básicas de seguridad se consideran.
+
+---
+
+## Tarea principal
+
+1. Abrir el archivo `README.md` ubicado en la raíz del proyecto.
+2. Reemplazar completamente el contenido actual por el README nuevo que aparece más abajo.
+3. No modificar lógica del proyecto, componentes, estilos, base de datos ni variables de entorno.
+4. No incluir claves reales, tokens, contraseñas ni datos privados.
+5. Verificar que el README quede bien formateado en Markdown.
+6. Confirmar al final qué archivo fue modificado.
+
+---
+
+## Contenido nuevo para `README.md`
+
+```md
 # Smash Fries
 
 **Smash Fries** es un sitio web desarrollado como proyecto de exposición universitaria para presentar una experiencia digital de restaurante enfocada en productos tipo smash, papas, combos, promociones y pedidos demo.
@@ -337,3 +361,28 @@ https://smash-fries.vercel.app/
 ## Nota final
 
 Smash Fries es una demostración académica que busca representar cómo podría funcionar una experiencia digital para un restaurante de comida rápida, combinando diseño, desarrollo frontend, base de datos y flujo de pedidos demo.
+```
+
+---
+
+## Verificación final para Codex
+
+Después de actualizar el archivo `README.md`, revisa lo siguiente:
+
+- El README está completamente en español.
+- Ya no aparece el texto genérico de Next.js.
+- El Markdown se visualiza correctamente en GitHub.
+- No se agregaron claves reales ni información sensible.
+- No se modificó ningún archivo diferente a `README.md`, salvo que sea estrictamente necesario.
+- El contenido describe el proyecto completo y no solo una parte.
+
+---
+
+## Mensaje final esperado de Codex
+
+Cuando termines, responde con un resumen breve indicando:
+
+- Que se actualizó `README.md`.
+- Que se reemplazó el contenido genérico de Next.js.
+- Que el nuevo README quedó en español y documenta todo el proyecto Smash Fries.
+- Si detectaste algún detalle importante adicional.
