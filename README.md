@@ -318,7 +318,7 @@ Funcionalidades principales esperadas:
 
 ## Autor
 
-Proyecto desarrollado por **Joshue Espino** como parte de una exposición universitaria.
+Proyecto desarrollado por **Joshue Espinal** como parte de una exposición universitaria.
 
 Repositorio:
 
