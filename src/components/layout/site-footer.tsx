@@ -12,7 +12,9 @@ export function SiteFooter({ settings }: SiteFooterProps) {
       ? envWhatsappNumber
       : settings.whatsapp_number;
   const whatsappNumber = rawWhatsappNumber.replace(/\D/g, "");
-  const locationText = [settings.address, settings.city].filter(Boolean).join(", ");
+  const safeAddress = settings.address?.trim() || "Av. del Pacífico y Calle 10";
+  const safeCity = settings.city?.trim() || "Esmeraldas, Ecuador";
+  const locationText = [safeAddress, safeCity].filter(Boolean).join(", ");
 
   return (
     <footer className="border-t border-border bg-card/90">
@@ -36,7 +38,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
             <a
               href={`https://wa.me/${whatsappNumber}`}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="mt-2 inline-flex text-sm font-medium text-accent hover:text-accent/90"
             >
               WhatsApp: {rawWhatsappNumber}
@@ -50,17 +52,17 @@ export function SiteFooter({ settings }: SiteFooterProps) {
           <h4 className="font-semibold text-foreground">Redes</h4>
           <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground/80">
             {settings.instagram_url ? (
-              <Link href={settings.instagram_url} target="_blank" rel="noreferrer">
+              <Link href={settings.instagram_url} target="_blank" rel="noopener noreferrer">
                 Instagram
               </Link>
             ) : null}
             {settings.facebook_url ? (
-              <Link href={settings.facebook_url} target="_blank" rel="noreferrer">
+              <Link href={settings.facebook_url} target="_blank" rel="noopener noreferrer">
                 Facebook
               </Link>
             ) : null}
             {settings.tiktok_url ? (
-              <Link href={settings.tiktok_url} target="_blank" rel="noreferrer">
+              <Link href={settings.tiktok_url} target="_blank" rel="noopener noreferrer">
                 TikTok
               </Link>
             ) : null}
