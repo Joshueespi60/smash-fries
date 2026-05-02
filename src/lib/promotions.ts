@@ -15,10 +15,10 @@ const WEEK_DAY_LABELS: Record<(typeof WEEK_DAYS)[number], string> = {
   sunday: "domingo",
   monday: "lunes",
   tuesday: "martes",
-  wednesday: "miercoles",
+  wednesday: "miércoles",
   thursday: "jueves",
   friday: "viernes",
-  saturday: "sabado",
+  saturday: "sábado",
 };
 
 function getCurrentWeekDay(now: Date): (typeof WEEK_DAYS)[number] {
@@ -213,7 +213,7 @@ export function getPromotionScheduleLabel(promotion: Promotion, now = new Date()
       }
     }
 
-    return "Promocion por dias";
+    return "Promoción por días";
   }
 
   if (start && end) {

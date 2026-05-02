@@ -12,7 +12,7 @@ const heroHighlights = [
     icon: Flame,
   },
   {
-    label: "Pedido rapido",
+    label: "Pedido rápido",
     icon: Clock3,
   },
   {
@@ -57,8 +57,8 @@ export function HomeHero({ featuredPromotion, featuredProduct }: HomeHeroProps) 
             Aplastadas al momento, frescas siempre
           </h1>
           <p className="mt-4 max-w-2xl text-sm text-foreground/90 md:text-base">
-            Hamburguesas smash-style con menu digital, promos activas y pedido
-            rapido por WhatsApp en Esmeraldas.
+            Hamburguesas smash-style con menú digital, promos activas y pedido
+            rápido por WhatsApp en Esmeraldas.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
@@ -68,7 +68,7 @@ export function HomeHero({ featuredPromotion, featuredProduct }: HomeHeroProps) 
               className="h-11 cursor-pointer rounded-xl px-5 text-sm font-bold shadow-sm shadow-primary/30 hover:bg-primary/90"
             >
               <Link href="/menu">
-                Ver menu
+                Ver menú
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
@@ -142,7 +142,7 @@ export function HomeHero({ featuredPromotion, featuredProduct }: HomeHeroProps) 
             +300 pedidos preparados
           </div>
           <div className="pointer-events-none absolute -bottom-4 right-3 rounded-xl border border-border/70 bg-card/90 px-3 py-2 text-xs font-semibold text-foreground shadow-sm">
-            Resena promedio 4.9/5
+            Reseña promedio 4.9/5
           </div>
         </div>
       </div>

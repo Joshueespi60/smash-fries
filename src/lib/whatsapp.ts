@@ -7,7 +7,7 @@ const DELIVERY_TYPE_LABELS: Record<DeliveryType, string> = {
 };
 
 const DEFAULT_WHATSAPP_MESSAGE =
-  "Hola, quiero hacer un pedido en Smash Fries. Me puedes ayudar con el menu y las promociones disponibles?";
+  "Hola, quiero hacer un pedido en Smash Fries. ¿Me puedes ayudar con el menú y las promociones disponibles?";
 
 type WhatsAppTotals = {
   subtotal: number;
@@ -65,12 +65,12 @@ export function buildWhatsAppMessage(
     `Pedido #${orderCode}`,
     "",
     `Cliente: ${safeCustomerName}`,
-    `Telefono: ${safeCustomerPhone}`,
+    `Teléfono: ${safeCustomerPhone}`,
     `Tipo de entrega: ${deliveryTypeLabel}`,
   ];
 
   if (customerData.deliveryType === "delivery" && safeDeliveryAddress) {
-    lines.push(`Direccion: ${safeDeliveryAddress}`);
+    lines.push(`Dirección: ${safeDeliveryAddress}`);
   }
 
   lines.push("", "Pedido:");
@@ -99,10 +99,10 @@ export function buildWhatsAppMessage(
 
   lines.push("");
   lines.push(`Subtotal: ${formatCurrency(totals.subtotal)}`);
-  lines.push(`Envio: ${formatCurrency(totals.deliveryFee)}`);
+  lines.push(`Envío: ${formatCurrency(totals.deliveryFee)}`);
   lines.push(`Total a pagar: ${formatCurrency(totals.total)}`);
   lines.push("");
-  lines.push("Me confirmas disponibilidad y tiempo de entrega/retiro?");
+  lines.push("¿Me confirmas disponibilidad y tiempo de entrega o retiro?");
 
   return lines.join("\n");
 }

@@ -13,7 +13,7 @@ const commitments: Array<{
   },
   {
     title: "Frescura",
-    description: "Preparacion al momento, pan suave y toppings recien servidos.",
+    description: "Preparación al momento, pan suave y toppings recién servidos.",
     icon: Leaf,
   },
   {
@@ -28,7 +28,7 @@ export function CommitmentGrid() {
     <section className="space-y-4">
       <h2 className="text-2xl font-black text-foreground">Nuestro compromiso</h2>
       <p className="max-w-2xl text-sm text-muted-foreground">
-        Cuidamos cada detalle para que la experiencia se sienta rica, rapida y
+        Cuidamos cada detalle para que la experiencia se sienta rica, rápida y
         confiable desde la primera visita.
       </p>
       <div className="grid gap-4 md:grid-cols-3">

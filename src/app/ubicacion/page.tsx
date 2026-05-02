@@ -7,8 +7,8 @@ import { getBusinessStatusLabel, isBusinessOpen } from "@/lib/business-hours";
 import { resolveWhatsAppNumber } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
-  title: "Ubicacion",
-  description: "Direccion, horario y estado abierto/cerrado de Smash Fries.",
+  title: "Ubicación",
+  description: "Dirección, horario y estado abierto/cerrado de Smash Fries.",
 };
 
 export default async function UbicacionPage() {
@@ -28,8 +28,8 @@ export default async function UbicacionPage() {
 
   return (
     <PageContainer
-      title="Ubicacion"
-      description={`Informacion de contacto y horario. Fuente actual: ${source}.`}
+      title="Ubicación"
+      description={`Información de contacto y horario. Fuente actual: ${source}.`}
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <section className="space-y-4 rounded-2xl border border-border bg-card/90 p-5">
@@ -113,7 +113,7 @@ export default async function UbicacionPage() {
             />
           ) : (
             <div className="grid h-[420px] place-items-center bg-gradient-to-br from-card via-muted to-accent/15 p-8 text-center text-muted-foreground">
-              Tarjeta visual de ubicacion disponible. Configura map_url para ver iframe.
+              Tarjeta visual de ubicación disponible. Configura map_url para ver iframe.
             </div>
           )}
         </section>

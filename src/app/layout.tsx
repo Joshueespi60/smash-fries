@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | Smash Fries",
   },
   description:
-    "Smash Fries con menu digital, carrito y pedido rapido por WhatsApp.",
+    "Smash Fries con menú digital, carrito y pedido rápido por WhatsApp.",
 };
 
 export default async function RootLayout({

@@ -9,9 +9,9 @@ import { useCartStore } from "@/store/cart-store";
 
 const navigation = [
   { href: "/", label: "Inicio" },
-  { href: "/menu", label: "Menu" },
+  { href: "/menu", label: "Menú" },
   { href: "/nosotros", label: "Nosotros" },
-  { href: "/ubicacion", label: "Ubicacion" },
+  { href: "/ubicacion", label: "Ubicación" },
 ];
 
 export function SiteHeader() {
@@ -72,7 +72,7 @@ export function SiteHeader() {
             type="button"
             onClick={() => setOpen((value) => !value)}
             className="rounded-lg border border-border p-2 text-foreground transition hover:bg-secondary md:hidden"
-            aria-label="Abrir menu"
+            aria-label="Abrir menú"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>

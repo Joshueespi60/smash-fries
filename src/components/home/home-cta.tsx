@@ -27,17 +27,17 @@ export function HomeCta({ whatsappNumber }: HomeCtaProps) {
         </div>
 
         <h2 className="mt-4 text-2xl font-black text-foreground md:text-3xl">
-          Listo para ordenar tu smash?
+          ¿Listo para ordenar tu smash?
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Escribenos por WhatsApp y envia tu pedido en pocos pasos, con confirmacion
-          clara y atencion rapida.
+          Escríbenos por WhatsApp y envía tu pedido en pocos pasos, con confirmación
+          clara y atención rápida.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-2.5">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 py-1.5 text-xs font-semibold text-foreground/90">
             <TimerReset className="size-3.5 text-primary" />
-            Respuesta agil
+            Respuesta ágil
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 py-1.5 text-xs font-semibold text-foreground/90">
             <Truck className="size-3.5 text-primary" />
@@ -84,7 +84,7 @@ export function HomeCta({ whatsappNumber }: HomeCtaProps) {
             className="h-11 cursor-pointer rounded-xl border-border/80 bg-card/85 px-5 text-sm font-semibold hover:bg-card"
           >
             <Link href="/menu">
-              Explorar menu
+              Explorar menú
               <ArrowRight className="size-4" />
             </Link>
           </Button>

@@ -6,7 +6,7 @@ import { getCatalogData, getDemoOrders, getPromotions, getReviews } from "@/lib/
 
 export const metadata: Metadata = {
   title: "Admin",
-  description: "Dashboard con metricas y pedidos del negocio.",
+  description: "Dashboard con métricas y pedidos del negocio.",
 };
 
 export default async function AdminPage() {
@@ -29,7 +29,7 @@ export default async function AdminPage() {
       value: promotions.filter((item) => item.is_active).length,
     },
     {
-      label: "Resenas aprobadas",
+      label: "Reseñas aprobadas",
       value: reviews.filter((item) => item.is_approved).length,
     },
     { label: "Pedidos registrados", value: orders.length },

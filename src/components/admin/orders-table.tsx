@@ -12,7 +12,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         <thead className="bg-card text-muted-foreground">
           <tr>
             <th className="px-4 py-3">Cliente</th>
-            <th className="px-4 py-3">Telefono</th>
+            <th className="px-4 py-3">Teléfono</th>
             <th className="px-4 py-3">Estado</th>
             <th className="px-4 py-3">Total</th>
             <th className="px-4 py-3">Fecha</th>

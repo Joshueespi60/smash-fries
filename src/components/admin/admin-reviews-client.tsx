@@ -24,7 +24,7 @@ export function AdminReviewsClient({ initialReviews }: AdminReviewsClientProps) 
     }
 
     if (!isSupabaseConfigured) {
-      toast.success("Resena actualizada en modo local");
+      toast.success("Reseña actualizada en modo local");
       return;
     }
 
@@ -43,10 +43,10 @@ export function AdminReviewsClient({ initialReviews }: AdminReviewsClientProps) 
       if (result.error) {
         toast.error("No se pudo actualizar en Supabase");
       } else {
-        toast.success("Resena sincronizada en Supabase");
+        toast.success("Reseña sincronizada en Supabase");
       }
     } catch {
-      toast.error("Error al sincronizar resena");
+      toast.error("Error al sincronizar reseña");
     }
   };
 
@@ -60,7 +60,9 @@ export function AdminReviewsClient({ initialReviews }: AdminReviewsClientProps) 
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h3 className="font-bold text-foreground">{review.customer_name}</h3>
-              <p className="text-xs text-muted-foreground/80">Rating: {review.rating}/5</p>
+              <p className="text-xs text-muted-foreground/80">
+                Calificación: {review.rating}/5
+              </p>
             </div>
             <button
               type="button"

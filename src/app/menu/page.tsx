@@ -4,8 +4,8 @@ import { PageContainer } from "@/components/shared/page-container";
 import { getCatalogData } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
-  title: "Menu",
-  description: "Menu digital de Smash Fries con filtros, busqueda y carrito.",
+  title: "Menú",
+  description: "Menú digital de Smash Fries con filtros, búsqueda y carrito.",
 };
 
 export default async function MenuPage() {
@@ -13,8 +13,8 @@ export default async function MenuPage() {
 
   return (
     <PageContainer
-      title="Menu Digital"
-      description={`Explora productos, filtra por categoria y agrega al carrito. Fuente actual: ${source}.`}
+      title="Menú digital"
+      description={`Explora productos, filtra por categoría y agrega al carrito. Fuente actual: ${source}.`}
     >
       <MenuClient categories={categories} products={products} />
     </PageContainer>

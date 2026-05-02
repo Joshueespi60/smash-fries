@@ -80,7 +80,7 @@ export function MenuClient({ categories, products }: MenuClientProps) {
       {filtered.length === 0 ? (
         <EmptyState
           title="Sin resultados"
-          description="Prueba otro termino de busqueda o cambia el filtro de categoria."
+          description="Prueba otro término de búsqueda o cambia el filtro de categoría."
         />
       ) : (
         <motion.div

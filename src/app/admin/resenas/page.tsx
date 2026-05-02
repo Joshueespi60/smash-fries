@@ -4,8 +4,8 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { getReviews } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
-  title: "Admin Resenas",
-  description: "Aprobar u ocultar resenas para la vista publica.",
+  title: "Admin Reseñas",
+  description: "Aprobar u ocultar reseñas para la vista pública.",
 };
 
 export default async function AdminResenasPage() {
@@ -13,8 +13,8 @@ export default async function AdminResenasPage() {
 
   return (
     <AdminShell
-      title="Admin de Resenas"
-      description={`Moderacion visual de resenas. Fuente: ${source}.`}
+      title="Admin de Reseñas"
+      description={`Moderación visual de reseñas. Fuente: ${source}.`}
     >
       <AdminReviewsClient initialReviews={reviews} />
     </AdminShell>

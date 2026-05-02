@@ -148,7 +148,7 @@ export function CartPageClient({
 
       const whatsappLink = buildWhatsAppLink(message, fallbackWhatsappNumber);
       if (!whatsappLink) {
-        toast.error("No hay numero de WhatsApp configurado.");
+        toast.error("No hay número de WhatsApp configurado.");
         return;
       }
       window.open(whatsappLink, "_blank", "noopener,noreferrer");

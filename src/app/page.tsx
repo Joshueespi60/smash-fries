@@ -25,7 +25,7 @@ import type { Product, Promotion } from "@/types";
 export const metadata: Metadata = {
   title: "Inicio",
   description:
-    "Smash Fries: burgers smash-style, menu digital, promos y pedido por WhatsApp.",
+    "Smash Fries: burgers smash-style, menú digital, promos y pedido por WhatsApp.",
 };
 
 type PromotionCard = {
@@ -65,7 +65,7 @@ export default async function HomePage() {
   return (
     <PageContainer
       title="Smash Fries"
-      description="Experiencia completa con menu digital, carrito y pedido rapido por WhatsApp."
+      description="Experiencia completa con menú digital, carrito y pedido rápido por WhatsApp."
     >
       <div className="space-y-12">
         <HomeHero
@@ -83,7 +83,7 @@ export default async function HomePage() {
                 Productos destacados
               </h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                Los mas pedidos para arrancar con buen sabor.
+                Los más pedidos para arrancar con buen sabor.
               </p>
             </div>
 
@@ -92,7 +92,7 @@ export default async function HomePage() {
               variant="outline"
               className="h-10 rounded-xl border-border/80 bg-card/85 px-4 text-sm font-semibold"
             >
-              <Link href="/menu">Ver menu completo</Link>
+              <Link href="/menu">Ver menú completo</Link>
             </Button>
           </div>
 
@@ -232,7 +232,7 @@ export default async function HomePage() {
                         </p>
                         <p className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
                           <MessageCircle className="size-3.5" />
-                          Resena verificada
+                          Reseña verificada
                         </p>
                       </div>
                     </header>
@@ -259,7 +259,7 @@ export default async function HomePage() {
             </div>
           ) : (
             <article className="rounded-2xl border border-border/80 bg-card/90 p-5 text-sm text-muted-foreground">
-              Aun no hay resenas aprobadas para mostrar.
+              Aún no hay reseñas aprobadas para mostrar.
             </article>
           )}
         </section>

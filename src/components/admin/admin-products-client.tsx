@@ -117,7 +117,7 @@ export function AdminProductsClient({
 
     const numericPrice = Number(form.price);
     if (!Number.isFinite(numericPrice)) {
-      toast.error("El precio no es valido");
+      toast.error("El precio no es válido");
       return;
     }
 
@@ -199,7 +199,7 @@ export function AdminProductsClient({
           <thead className="bg-card text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Nombre</th>
-              <th className="px-4 py-3">Categoria</th>
+              <th className="px-4 py-3">Categoría</th>
               <th className="px-4 py-3">Precio</th>
               <th className="px-4 py-3">Disponible</th>
               <th className="px-4 py-3">Destacado</th>
@@ -211,14 +211,14 @@ export function AdminProductsClient({
               <tr key={product.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium text-foreground">{product.name}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {categoryMap.get(product.category_id ?? "") ?? "Sin categoria"}
+                  {categoryMap.get(product.category_id ?? "") ?? "Sin categoría"}
                 </td>
                 <td className="px-4 py-3 text-accent">{formatCurrency(product.price)}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {product.is_available ? "Si" : "No"}
+                  {product.is_available ? "Sí" : "No"}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {product.is_featured ? "Si" : "No"}
+                  {product.is_featured ? "Sí" : "No"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
@@ -271,7 +271,7 @@ export function AdminProductsClient({
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, description: event.target.value }))
               }
-              placeholder="Descripcion"
+              placeholder="Descripción"
               className="w-full rounded-lg border border-border bg-background/60 px-3 py-2 text-foreground"
             />
             <textarea

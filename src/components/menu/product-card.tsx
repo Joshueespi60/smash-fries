@@ -19,7 +19,7 @@ export function ProductCard({ product, badge }: ProductCardProps) {
 
   const handleAdd = () => {
     if (!product.is_available) {
-      toast.error("Este producto no esta disponible ahora");
+      toast.error("Este producto no está disponible ahora");
       return;
     }
 

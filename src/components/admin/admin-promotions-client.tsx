@@ -29,7 +29,7 @@ export function AdminPromotionsClient({
     }
 
     if (!isSupabaseConfigured) {
-      toast.success("Promocion actualizada en modo local");
+      toast.success("Promoción actualizada en modo local");
       return;
     }
 
@@ -48,10 +48,10 @@ export function AdminPromotionsClient({
       if (result.error) {
         toast.error("No se pudo actualizar en Supabase");
       } else {
-        toast.success("Promocion sincronizada en Supabase");
+        toast.success("Promoción sincronizada en Supabase");
       }
     } catch {
-      toast.error("Error al sincronizar promocion");
+      toast.error("Error al sincronizar promoción");
     }
   };
 
