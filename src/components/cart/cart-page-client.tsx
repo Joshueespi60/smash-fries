@@ -7,6 +7,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ProductVisual } from "@/components/shared/product-visual";
+import { clampInteger, clampNumber, sanitizePhoneNumber, sanitizeTextInput } from "@/lib/security";
 import { saveDemoOrder } from "@/lib/smash-data";
 import {
   buildOrderCode,
@@ -16,9 +17,11 @@ import {
 } from "@/lib/whatsapp";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
-import type { DeliveryType } from "@/types";
+import type { CartItem, DeliveryType, Product } from "@/types";
 
 const LAST_ORDER_KEY = "smash-fries-last-order";
+const MAX_QTY_PER_PRODUCT = 20;
+
 const DELIVERY_TYPE_LABELS: Record<DeliveryType, string> = {
   retiro: "Retiro en local",
   delivery: "Entrega a domicilio",
@@ -33,11 +36,17 @@ type FormErrors = {
 type CartPageClientProps = {
   defaultDeliveryFee: number;
   fallbackWhatsappNumber: string;
+  catalogProducts: Product[];
+};
+
+type ResolvedCartItem = CartItem & {
+  unavailable: boolean;
 };
 
 export function CartPageClient({
   defaultDeliveryFee,
   fallbackWhatsappNumber,
+  catalogProducts,
 }: CartPageClientProps) {
   const router = useRouter();
 
@@ -48,7 +57,7 @@ export function CartPageClient({
   const removeItem = useCartStore((state) => state.removeItem);
   const clearCart = useCartStore((state) => state.clearCart);
   const setDeliveryFee = useCartStore((state) => state.setDeliveryFee);
-  const safeDefaultDeliveryFee = Math.max(0, Number(defaultDeliveryFee) || 0);
+  const safeDefaultDeliveryFee = clampNumber(defaultDeliveryFee, 0, 200, 0);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -57,8 +66,84 @@ export function CartPageClient({
   const [observations, setObservations] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+
   const isDelivery = deliveryType === "delivery";
   const resolvedDeliveryFee = isDelivery ? safeDefaultDeliveryFee : 0;
+
+  const productsById = useMemo(
+    () => new Map(catalogProducts.map((product) => [product.id, product])),
+    [catalogProducts]
+  );
+
+  const resolved = useMemo(() => {
+    const validItems: ResolvedCartItem[] = [];
+    let missingProducts = 0;
+    let unavailableProducts = 0;
+
+    items.forEach((item) => {
+      const product = productsById.get(item.product_id);
+      if (!product) {
+        missingProducts += 1;
+        return;
+      }
+
+      const allowedAddons = new Map(
+        (product.addons ?? [])
+          .filter((addon) => addon.is_available)
+          .map((addon) => [
+            addon.id,
+            {
+              id: addon.id,
+              name: sanitizeTextInput(addon.name, { maxLength: 80 }) || "Extra",
+              price: clampNumber(addon.price, 0, 100, 0),
+            },
+          ])
+      );
+
+      const selectedAddonsMap = new Map<string, { id: string; name: string; price: number }>();
+
+      (item.addons ?? []).forEach((addon) => {
+        const safeAddon = allowedAddons.get(addon.id);
+        if (!safeAddon) {
+          return;
+        }
+        selectedAddonsMap.set(safeAddon.id, safeAddon);
+      });
+
+      const selectedAddons = [...selectedAddonsMap.values()].sort((a, b) =>
+        a.id.localeCompare(b.id)
+      );
+
+      const unavailable = !product.is_available;
+      if (unavailable) {
+        unavailableProducts += 1;
+      }
+
+      validItems.push({
+        line_id: item.line_id,
+        product_id: product.id,
+        slug: product.slug,
+        name: product.name,
+        unit_price: clampNumber(product.price, 0, 500, 0),
+        image_url: product.image_url,
+        quantity: clampInteger(item.quantity, 1, MAX_QTY_PER_PRODUCT, 1),
+        addons: selectedAddons,
+        unavailable,
+      });
+    });
+
+    return {
+      items: validItems,
+      missingProducts,
+      unavailableProducts,
+    };
+  }, [items, productsById]);
+
+  const resolvedItems = resolved.items;
+  const orderItems = useMemo(
+    () => resolvedItems.filter((item) => !item.unavailable),
+    [resolvedItems]
+  );
 
   useEffect(() => {
     if (deliveryFee !== resolvedDeliveryFee) {
@@ -66,7 +151,7 @@ export function CartPageClient({
     }
   }, [deliveryFee, resolvedDeliveryFee, setDeliveryFee]);
 
-  const finalSubtotal = useMemo(() => calculateCartSubtotal(items), [items]);
+  const finalSubtotal = useMemo(() => calculateCartSubtotal(orderItems), [orderItems]);
   const finalTotal = finalSubtotal + resolvedDeliveryFee;
 
   const updateError = (field: keyof FormErrors, value?: string) => {
@@ -87,23 +172,47 @@ export function CartPageClient({
   };
 
   const handleSubmitOrder = async () => {
-    if (items.length === 0) {
-      toast.error("Tu carrito está vacío");
+    if (orderItems.length === 0) {
+      toast.error("Tu carrito esta vacio");
       return;
     }
 
+    if (resolved.unavailableProducts > 0) {
+      toast.error("Hay productos no disponibles en tu carrito. Retiralos para continuar.");
+      return;
+    }
+
+    if (resolved.missingProducts > 0) {
+      toast.error("Se detectaron productos invalidos en el carrito. Limpialo e intenta de nuevo.");
+      return;
+    }
+
+    const safeCustomerName = sanitizeTextInput(customerName, {
+      maxLength: 80,
+    });
+    const safeCustomerPhone = sanitizePhoneNumber(customerPhone);
+    const safeAddress = isDelivery
+      ? sanitizeTextInput(deliveryAddress, {
+          maxLength: 180,
+        })
+      : "";
+    const safeObservations = sanitizeTextInput(observations, {
+      maxLength: 280,
+      allowNewLines: true,
+    });
+
     const nextErrors: FormErrors = {};
 
-    if (!customerName.trim()) {
+    if (!safeCustomerName) {
       nextErrors.customerName = "Ingresa tu nombre.";
     }
 
-    if (!customerPhone.trim()) {
-      nextErrors.customerPhone = "Ingresa tu teléfono.";
+    if (!safeCustomerPhone) {
+      nextErrors.customerPhone = "Ingresa un telefono valido.";
     }
 
-    if (isDelivery && !deliveryAddress.trim()) {
-      nextErrors.deliveryAddress = "Ingresa tu dirección para la entrega a domicilio.";
+    if (isDelivery && !safeAddress) {
+      nextErrors.deliveryAddress = "Ingresa tu direccion para la entrega a domicilio.";
     }
 
     setErrors(nextErrors);
@@ -118,10 +227,6 @@ export function CartPageClient({
       return;
     }
 
-    const safeCustomerName = customerName.trim();
-    const safeCustomerPhone = customerPhone.trim();
-    const safeAddress = isDelivery ? deliveryAddress.trim() : "";
-    const safeObservations = observations.trim();
     const orderDate = new Date();
     const createdAt = orderDate.toISOString();
     const orderCode = buildOrderCode(orderDate);
@@ -130,7 +235,7 @@ export function CartPageClient({
 
     try {
       const message = buildWhatsAppMessage(
-        items,
+        orderItems,
         {
           customerName: safeCustomerName,
           customerPhone: safeCustomerPhone,
@@ -148,9 +253,10 @@ export function CartPageClient({
 
       const whatsappLink = buildWhatsAppLink(message, fallbackWhatsappNumber);
       if (!whatsappLink) {
-        toast.error("No hay número de WhatsApp configurado.");
+        toast.error("No hay numero de WhatsApp configurado.");
         return;
       }
+
       window.open(whatsappLink, "_blank", "noopener,noreferrer");
 
       const summaryForStorage = {
@@ -159,7 +265,7 @@ export function CartPageClient({
         deliveryAddress: safeAddress,
         deliveryType,
         observations: safeObservations,
-        items,
+        items: orderItems,
         subtotal: finalSubtotal,
         deliveryFee: resolvedDeliveryFee,
         total: finalTotal,
@@ -180,30 +286,30 @@ export function CartPageClient({
       if (saveResult.saved) {
         toast.success("Pedido guardado en Supabase");
       } else if (saveResult.source === "supabase") {
-        toast.error("No se pudo guardar en Supabase, pero WhatsApp continúa");
+        toast.error("No se pudo guardar en Supabase, pero WhatsApp continua");
       }
 
       toast.success("Pedido enviado por WhatsApp");
       clearCart();
       router.push("/confirmacion");
     } catch {
-      toast.error("Ocurrió un error al enviar el pedido");
+      toast.error("Ocurrio un error al enviar el pedido");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (items.length === 0) {
+  if (orderItems.length === 0) {
     return (
       <EmptyState
-        title="Tu carrito está vacío"
-        description="Agrega productos del menú para completar tu pedido."
+        title="Tu carrito esta vacio"
+        description="Agrega productos del menu para completar tu pedido."
         action={
           <Link
             href="/menu"
             className="inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
-            Ver menú
+            Ver menu
           </Link>
         }
       />
@@ -223,8 +329,23 @@ export function CartPageClient({
           </Link>
         </div>
 
-        {items.map((item) => {
+        {resolved.unavailableProducts > 0 ? (
+          <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Hay productos no disponibles en tu carrito. Eliminelos antes de enviar el pedido.
+          </p>
+        ) : null}
+
+        {resolved.missingProducts > 0 ? (
+          <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Se detectaron productos invalidos en el carrito. Te recomendamos vaciarlo y volver a
+            agregar tus productos.
+          </p>
+        ) : null}
+
+        {resolvedItems.map((item) => {
           const addonsText = item.addons.map((addon) => addon.name).join(", ");
+          const disableIncrease = item.quantity >= MAX_QTY_PER_PRODUCT;
+
           return (
             <article
               key={item.line_id}
@@ -237,7 +358,12 @@ export function CartPageClient({
               />
               <div className="flex-1 space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-foreground">{item.name}</h3>
+                  <div>
+                    <h3 className="font-bold text-foreground">{item.name}</h3>
+                    {item.unavailable ? (
+                      <p className="text-xs font-semibold text-destructive">No disponible</p>
+                    ) : null}
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -270,8 +396,9 @@ export function CartPageClient({
                   </span>
                   <button
                     type="button"
+                    disabled={disableIncrease}
                     onClick={() => increaseQuantity(item.line_id)}
-                    className="p-1.5 text-foreground hover:bg-secondary"
+                    className="p-1.5 text-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Plus className="size-4" />
                   </button>
@@ -298,7 +425,7 @@ export function CartPageClient({
             <span>{formatCurrency(finalSubtotal)}</span>
           </p>
           <p className="flex justify-between">
-            <span>Envío</span>
+            <span>Envio</span>
             <span>{formatCurrency(resolvedDeliveryFee)}</span>
           </p>
           <p className="flex justify-between text-lg font-black text-accent">
@@ -307,15 +434,14 @@ export function CartPageClient({
           </p>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          El pedido será confirmado por WhatsApp.
-        </p>
+        <p className="text-xs text-muted-foreground">El pedido sera confirmado por WhatsApp.</p>
 
         <div className="space-y-3 border-t border-border pt-4">
           <label className="space-y-1 text-sm">
             <span className="text-muted-foreground">Nombre</span>
             <input
               value={customerName}
+              maxLength={80}
               onChange={(event) => {
                 setCustomerName(event.target.value);
                 updateError("customerName");
@@ -331,9 +457,11 @@ export function CartPageClient({
           </label>
 
           <label className="space-y-1 text-sm">
-            <span className="text-muted-foreground">Teléfono</span>
+            <span className="text-muted-foreground">Telefono</span>
             <input
               value={customerPhone}
+              maxLength={20}
+              inputMode="tel"
               onChange={(event) => {
                 setCustomerPhone(event.target.value);
                 updateError("customerPhone");
@@ -354,7 +482,7 @@ export function CartPageClient({
               value={deliveryType}
               onChange={(event) => {
                 const nextType = event.target.value as DeliveryType;
-                setDeliveryType(nextType);
+                setDeliveryType(nextType === "delivery" ? "delivery" : "retiro");
 
                 if (nextType === "retiro") {
                   updateError("deliveryAddress");
@@ -369,9 +497,10 @@ export function CartPageClient({
 
           {isDelivery ? (
             <label className="space-y-1 text-sm">
-              <span className="text-muted-foreground">Dirección</span>
+              <span className="text-muted-foreground">Direccion</span>
               <textarea
                 value={deliveryAddress}
+                maxLength={180}
                 onChange={(event) => {
                   setDeliveryAddress(event.target.value);
                   updateError("deliveryAddress");
@@ -392,7 +521,7 @@ export function CartPageClient({
             </label>
           ) : (
             <label className="space-y-1 text-sm">
-              <span className="text-muted-foreground">Dirección</span>
+              <span className="text-muted-foreground">Direccion</span>
               <input
                 value="No aplica"
                 disabled
@@ -406,6 +535,7 @@ export function CartPageClient({
             <span className="text-muted-foreground">Observaciones</span>
             <textarea
               value={observations}
+              maxLength={280}
               onChange={(event) => setObservations(event.target.value)}
               rows={2}
               className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground outline-none focus:border-primary"

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { sanitizeSocialUrl, sanitizeTextInput } from "@/lib/security";
+import { resolveWhatsAppNumber } from "@/lib/whatsapp";
 import type { BusinessSettings } from "@/types";
 
 type SiteFooterProps = {
@@ -6,14 +8,19 @@ type SiteFooterProps = {
 };
 
 export function SiteFooter({ settings }: SiteFooterProps) {
-  const envWhatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim();
-  const rawWhatsappNumber =
-    envWhatsappNumber && envWhatsappNumber.length > 0
-      ? envWhatsappNumber
-      : settings.whatsapp_number;
-  const whatsappNumber = rawWhatsappNumber.replace(/\D/g, "");
-  const safeAddress = settings.address?.trim() || "Av. del Pacífico y Calle 10";
-  const safeCity = settings.city?.trim() || "Esmeraldas, Ecuador";
+  const whatsappNumber = resolveWhatsAppNumber(settings.whatsapp_number);
+  const displayWhatsapp =
+    sanitizeTextInput(settings.whatsapp_number, {
+      maxLength: 20,
+      collapseWhitespace: false,
+    }) || whatsappNumber;
+  const safeAddress =
+    sanitizeTextInput(settings.address ?? "", { maxLength: 160 }) || "Av. del Pacifico y Calle 10";
+  const safeCity =
+    sanitizeTextInput(settings.city ?? "", { maxLength: 80 }) || "Esmeraldas, Ecuador";
+  const instagramUrl = sanitizeSocialUrl(settings.instagram_url, "instagram");
+  const facebookUrl = sanitizeSocialUrl(settings.facebook_url, "facebook");
+  const tiktokUrl = sanitizeSocialUrl(settings.tiktok_url, "tiktok");
   const locationText = [safeAddress, safeCity].filter(Boolean).join(", ");
 
   return (
@@ -41,7 +48,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
               rel="noopener noreferrer"
               className="mt-2 inline-flex text-sm font-medium text-accent hover:text-accent/90"
             >
-              WhatsApp: {rawWhatsappNumber}
+              WhatsApp: {displayWhatsapp}
             </a>
           ) : (
             <p className="mt-2 text-sm text-muted-foreground/80">WhatsApp no configurado</p>
@@ -51,18 +58,18 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         <section>
           <h4 className="font-semibold text-foreground">Redes</h4>
           <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground/80">
-            {settings.instagram_url ? (
-              <Link href={settings.instagram_url} target="_blank" rel="noopener noreferrer">
+            {instagramUrl ? (
+              <Link href={instagramUrl} target="_blank" rel="noopener noreferrer">
                 Instagram
               </Link>
             ) : null}
-            {settings.facebook_url ? (
-              <Link href={settings.facebook_url} target="_blank" rel="noopener noreferrer">
+            {facebookUrl ? (
+              <Link href={facebookUrl} target="_blank" rel="noopener noreferrer">
                 Facebook
               </Link>
             ) : null}
-            {settings.tiktok_url ? (
-              <Link href={settings.tiktok_url} target="_blank" rel="noopener noreferrer">
+            {tiktokUrl ? (
+              <Link href={tiktokUrl} target="_blank" rel="noopener noreferrer">
                 TikTok
               </Link>
             ) : null}

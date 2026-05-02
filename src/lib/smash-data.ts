@@ -8,6 +8,14 @@ import {
   fallbackPromotions,
   fallbackReviews,
 } from "@/data/fallback-data";
+import {
+  clampNumber,
+  sanitizeExternalUrl,
+  sanitizeMapEmbedUrl,
+  sanitizePhoneNumber,
+  sanitizeSocialUrl,
+  sanitizeTextInput,
+} from "@/lib/security";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { normalizeProductName, toNumber } from "@/lib/utils";
 import type {
@@ -38,9 +46,13 @@ type CatalogPayload = {
 function mapCategory(row: CategoryRow): Category {
   return {
     id: row.id,
-    name: row.name,
-    slug: row.slug,
-    icon: row.icon,
+    name: sanitizeTextInput(row.name, { maxLength: 80 }) || "Categoria",
+    slug:
+      sanitizeTextInput(row.slug, {
+        maxLength: 120,
+        collapseWhitespace: false,
+      }) || "categoria",
+    icon: row.icon ? sanitizeTextInput(row.icon, { maxLength: 40 }) : null,
     sort_order: row.sort_order,
     created_at: row.created_at,
   };
@@ -49,9 +61,9 @@ function mapCategory(row: CategoryRow): Category {
 function mapAddon(row: AddonRow): Addon {
   return {
     id: row.id,
-    name: row.name,
-    price: toNumber(row.price),
-    icon: row.icon,
+    name: sanitizeTextInput(row.name, { maxLength: 80 }) || "Extra",
+    price: clampNumber(toNumber(row.price), 0, 100, 0),
+    icon: row.icon ? sanitizeTextInput(row.icon, { maxLength: 40 }) : null,
     is_available: row.is_available,
     created_at: row.created_at,
   };
@@ -61,12 +73,22 @@ function mapProduct(row: ProductRow): Product {
   return {
     id: row.id,
     category_id: row.category_id,
-    name: normalizeProductName(row.name),
-    slug: row.slug,
-    description: row.description,
-    ingredients: row.ingredients,
-    price: toNumber(row.price),
-    image_url: row.image_url,
+    name: normalizeProductName(
+      sanitizeTextInput(row.name, { maxLength: 100 }) || "Producto"
+    ),
+    slug:
+      sanitizeTextInput(row.slug, {
+        maxLength: 120,
+        collapseWhitespace: false,
+      }) || "producto",
+    description: sanitizeTextInput(row.description, { maxLength: 260 }) || "",
+    ingredients: row.ingredients
+      ? sanitizeTextInput(row.ingredients, { maxLength: 260 })
+      : null,
+    price: clampNumber(toNumber(row.price), 0, 500, 0),
+    image_url: sanitizeExternalUrl(row.image_url, {
+      allowRelativePath: true,
+    }),
     is_available: row.is_available,
     is_featured: row.is_featured,
     sort_order: row.sort_order,
@@ -190,17 +212,40 @@ export async function getPromotions(): Promise<{ source: SourceStatus; promotion
 
     const promotions: Promotion[] = result.data.map((item) => ({
       id: item.id,
-      title: item.title,
-      description: item.description,
-      price: item.price,
-      image_url: item.image_url,
+      title: sanitizeTextInput(item.title, { maxLength: 120 }) || "Promocion",
+      description: sanitizeTextInput(item.description, { maxLength: 260 }) || "",
+      price:
+        item.price === null || item.price === undefined
+          ? null
+          : clampNumber(item.price, 0, 500, 0),
+      image_url: sanitizeExternalUrl(item.image_url, {
+        allowRelativePath: true,
+      }),
       is_active: item.is_active,
-      badge: (item as { badge?: string | null }).badge ?? null,
-      product_id: (item as { product_id?: string | null }).product_id ?? null,
-      product_slug: (item as { product_slug?: string | null }).product_slug ?? null,
+      badge: sanitizeTextInput((item as { badge?: string | null }).badge ?? "", {
+        maxLength: 40,
+      }) || null,
+      product_id:
+        sanitizeTextInput((item as { product_id?: string | null }).product_id ?? "", {
+          maxLength: 64,
+          collapseWhitespace: false,
+        }) || null,
+      product_slug:
+        sanitizeTextInput((item as { product_slug?: string | null }).product_slug ?? "", {
+          maxLength: 120,
+          collapseWhitespace: false,
+        }) || null,
       active_days: (item as { active_days?: string[] | null }).active_days ?? null,
-      start_time: (item as { start_time?: string | null }).start_time ?? null,
-      end_time: (item as { end_time?: string | null }).end_time ?? null,
+      start_time:
+        sanitizeTextInput((item as { start_time?: string | null }).start_time ?? "", {
+          maxLength: 5,
+          collapseWhitespace: false,
+        }) || null,
+      end_time:
+        sanitizeTextInput((item as { end_time?: string | null }).end_time ?? "", {
+          maxLength: 5,
+          collapseWhitespace: false,
+        }) || null,
       created_at: item.created_at,
     }));
 
@@ -251,9 +296,9 @@ export async function getReviews(includeHidden = false): Promise<{ source: Sourc
 
     const reviews: Review[] = result.data.map((item) => ({
       id: item.id,
-      customer_name: item.customer_name,
-      rating: item.rating,
-      comment: item.comment,
+      customer_name: sanitizeTextInput(item.customer_name, { maxLength: 80 }) || "Cliente",
+      rating: clampNumber(item.rating, 0, 5, 0),
+      comment: sanitizeTextInput(item.comment, { maxLength: 320 }) || "",
       is_approved: item.is_approved,
       created_at: item.created_at,
     }));
@@ -299,18 +344,35 @@ export async function getBusinessSettings(): Promise<{
       source: "supabase",
       settings: {
         id: row.id,
-        business_name: row.business_name ?? "Smash Fries",
-        slogan: row.slogan ?? "Aplastadas al momento, frescas siempre",
-        whatsapp_number: row.whatsapp_number,
-        address: row.address,
-        city: row.city ?? "Esmeraldas, Ecuador",
-        opening_time: row.opening_time ?? "17:00",
-        closing_time: row.closing_time ?? "22:30",
-        delivery_fee: toNumber(row.delivery_fee),
-        instagram_url: row.instagram_url,
-        facebook_url: row.facebook_url,
-        tiktok_url: row.tiktok_url,
-        map_url: row.map_url,
+        business_name:
+          sanitizeTextInput(row.business_name ?? "", { maxLength: 80 }) || "Smash Fries",
+        slogan:
+          sanitizeTextInput(row.slogan ?? "", { maxLength: 140 }) ||
+          "Aplastadas al momento, frescas siempre",
+        whatsapp_number: sanitizePhoneNumber(row.whatsapp_number, {
+          minDigits: 8,
+          maxDigits: 15,
+        }),
+        address: row.address
+          ? sanitizeTextInput(row.address, { maxLength: 160 })
+          : null,
+        city:
+          sanitizeTextInput(row.city ?? "", { maxLength: 80 }) || "Esmeraldas, Ecuador",
+        opening_time:
+          sanitizeTextInput(row.opening_time ?? "", {
+            maxLength: 5,
+            collapseWhitespace: false,
+          }) || "17:00",
+        closing_time:
+          sanitizeTextInput(row.closing_time ?? "", {
+            maxLength: 5,
+            collapseWhitespace: false,
+          }) || "22:30",
+        delivery_fee: clampNumber(toNumber(row.delivery_fee), 0, 200, 0),
+        instagram_url: sanitizeSocialUrl(row.instagram_url, "instagram"),
+        facebook_url: sanitizeSocialUrl(row.facebook_url, "facebook"),
+        tiktok_url: sanitizeSocialUrl(row.tiktok_url, "tiktok"),
+        map_url: sanitizeMapEmbedUrl(row.map_url),
         created_at: row.created_at,
       },
     };
@@ -345,12 +407,20 @@ export async function getDemoOrders(): Promise<{
 
     const orders: DemoOrder[] = result.data.map((item) => ({
       id: item.id,
-      customer_name: item.customer_name,
-      customer_phone: item.customer_phone,
-      delivery_address: item.delivery_address,
-      order_summary: item.order_summary,
-      total: toNumber(item.total),
-      status: item.status ?? "recibido",
+      customer_name: sanitizeTextInput(item.customer_name, { maxLength: 80 }) || "Cliente",
+      customer_phone: sanitizePhoneNumber(item.customer_phone ?? "", {
+        minDigits: 8,
+        maxDigits: 15,
+      }),
+      delivery_address: item.delivery_address
+        ? sanitizeTextInput(item.delivery_address, { maxLength: 180 })
+        : null,
+      order_summary: sanitizeTextInput(item.order_summary, {
+        maxLength: 3200,
+        allowNewLines: true,
+      }),
+      total: clampNumber(toNumber(item.total), 0, 10000, 0),
+      status: sanitizeTextInput(item.status ?? "", { maxLength: 30 }) || "recibido",
       created_at: item.created_at,
     }));
 
@@ -367,6 +437,24 @@ export async function saveDemoOrder(input: {
   order_summary: string;
   total: number;
 }): Promise<{ saved: boolean; source: SourceStatus }> {
+  const safeName = sanitizeTextInput(input.customer_name, { maxLength: 80 });
+  const safePhone = sanitizePhoneNumber(input.customer_phone, {
+    minDigits: 8,
+    maxDigits: 15,
+  });
+  const safeAddress = sanitizeTextInput(input.delivery_address, {
+    maxLength: 180,
+  });
+  const safeSummary = sanitizeTextInput(input.order_summary, {
+    maxLength: 3200,
+    allowNewLines: true,
+  });
+  const safeTotal = clampNumber(input.total, 0, 10000, 0);
+
+  if (!safeName || !safePhone || !safeSummary || safeTotal <= 0) {
+    return { saved: false, source: "fallback" };
+  }
+
   if (!isSupabaseConfigured) {
     return { saved: false, source: "fallback" };
   }
@@ -378,11 +466,11 @@ export async function saveDemoOrder(input: {
 
   try {
     const result = await supabase.from("demo_orders").insert({
-      customer_name: input.customer_name,
-      customer_phone: input.customer_phone,
-      delivery_address: input.delivery_address,
-      order_summary: input.order_summary,
-      total: input.total,
+      customer_name: safeName,
+      customer_phone: safePhone,
+      delivery_address: safeAddress || null,
+      order_summary: safeSummary,
+      total: safeTotal,
       status: "recibido",
     });
 

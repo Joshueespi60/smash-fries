@@ -59,7 +59,7 @@ export function HomeCta({ whatsappNumber }: HomeCtaProps) {
               <Link
                 href={whatsappLink}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 aria-label={`Abrir WhatsApp de Smash Fries (${resolvedPhone})`}
               >
                 Ir a WhatsApp

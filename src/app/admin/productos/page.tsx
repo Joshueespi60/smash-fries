@@ -5,7 +5,11 @@ import { getCatalogData } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
   title: "Admin Productos",
-  description: "Gestión de productos con acciones locales y Supabase opcional.",
+  description: "Gestion de productos con acciones locales y Supabase opcional.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminProductosPage() {
@@ -14,7 +18,7 @@ export default async function AdminProductosPage() {
   return (
     <AdminShell
       title="Admin de Productos"
-      description={`Gestiona el catálogo. Fuente actual: ${source}.`}
+      description={`Gestiona el catalogo. Fuente actual: ${source}.`}
     >
       <AdminProductsClient initialProducts={products} categories={categories} />
     </AdminShell>

@@ -5,7 +5,11 @@ import { getPromotions } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
   title: "Admin Promociones",
-  description: "Gestión de promociones activas e inactivas.",
+  description: "Gestion de promociones activas e inactivas.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminPromocionesPage() {

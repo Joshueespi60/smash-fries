@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CartPageClient } from "@/components/cart/cart-page-client";
 import { PageContainer } from "@/components/shared/page-container";
-import { getBusinessSettings } from "@/lib/smash-data";
+import { getBusinessSettings, getCatalogData } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
   title: "Carrito",
@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default async function CarritoPage() {
-  const { settings } = await getBusinessSettings();
+  const [{ settings }, { products }] = await Promise.all([
+    getBusinessSettings(),
+    getCatalogData(),
+  ]);
 
   return (
     <PageContainer
@@ -19,6 +22,7 @@ export default async function CarritoPage() {
       <CartPageClient
         defaultDeliveryFee={settings.delivery_fee}
         fallbackWhatsappNumber={settings.whatsapp_number}
+        catalogProducts={products}
       />
     </PageContainer>
   );

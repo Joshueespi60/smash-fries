@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { clampInteger, clampNumber, sanitizePhoneNumber, sanitizeTextInput } from "@/lib/security";
 import { buildOrderCode } from "@/lib/whatsapp";
 import { formatCurrency } from "@/lib/utils";
 import type { CartItem, DeliveryType } from "@/types";
@@ -88,12 +89,18 @@ export function OrderConfirmationCard() {
     [orderDate]
   );
 
-  const safeCustomerName = order?.customerName?.trim() || "No especificado";
-  const safeCustomerPhone = order?.customerPhone?.trim() || "No especificado";
+  const safeCustomerName =
+    sanitizeTextInput(order?.customerName ?? "", { maxLength: 80 }) || "No especificado";
+  const safeCustomerPhone = sanitizePhoneNumber(order?.customerPhone ?? "") || "No especificado";
   const safeDeliveryType: DeliveryType = order?.deliveryType === "delivery" ? "delivery" : "retiro";
   const safeDeliveryLabel = DELIVERY_TYPE_LABELS[safeDeliveryType];
-  const safeDeliveryAddress = order?.deliveryAddress?.trim() || "";
-  const safeObservations = order?.observations?.trim() || "";
+  const safeDeliveryAddress = sanitizeTextInput(order?.deliveryAddress ?? "", {
+    maxLength: 180,
+  });
+  const safeObservations = sanitizeTextInput(order?.observations ?? "", {
+    maxLength: 280,
+    allowNewLines: true,
+  });
   const safeItems = Array.isArray(order?.items) ? order.items : [];
 
   return (
@@ -165,10 +172,17 @@ export function OrderConfirmationCard() {
             {safeItems.length > 0 ? (
               <div className="mt-3 space-y-3">
                 {safeItems.map((item) => {
-                  const safeAddons = Array.isArray(item.addons) ? item.addons : [];
+                  const safeAddons = (Array.isArray(item.addons) ? item.addons : [])
+                    .map((addon) => ({
+                      id: sanitizeTextInput(addon.id, { maxLength: 64 }),
+                      name: sanitizeTextInput(addon.name, { maxLength: 80 }),
+                      price: clampNumber(addon.price, 0, 100, 0),
+                    }))
+                    .filter((addon) => addon.id && addon.name);
                   const addonsTotal = safeAddons.reduce((sum, addon) => sum + addon.price, 0);
-                  const unitPrice = item.unit_price + addonsTotal;
-                  const lineSubtotal = unitPrice * item.quantity;
+                  const safeUnitPrice = clampNumber(item.unit_price, 0, 500, 0);
+                  const safeQuantity = clampInteger(item.quantity, 1, 20, 1);
+                  const lineSubtotal = (safeUnitPrice + addonsTotal) * safeQuantity;
 
                   return (
                     <article
@@ -176,7 +190,8 @@ export function OrderConfirmationCard() {
                       className="rounded-xl border border-border bg-card/80 p-3 text-sm text-foreground"
                     >
                       <p className="font-semibold">
-                        {item.quantity}x {item.name}
+                        {safeQuantity}x{" "}
+                        {sanitizeTextInput(item.name, { maxLength: 90 }) || "Producto"}
                       </p>
                       {safeAddons.length > 0 ? (
                         <p className="mt-1 text-muted-foreground">
@@ -184,7 +199,7 @@ export function OrderConfirmationCard() {
                         </p>
                       ) : null}
                       <p className="mt-1 text-muted-foreground">
-                        <strong>Precio unitario:</strong> {formatCurrency(unitPrice)}
+                        <strong>Precio unitario:</strong> {formatCurrency(safeUnitPrice + addonsTotal)}
                       </p>
                       <p className="mt-1 font-medium">
                         <strong>Subtotal:</strong> {formatCurrency(lineSubtotal)}

@@ -6,6 +6,10 @@ import { getDemoOrders } from "@/lib/smash-data";
 export const metadata: Metadata = {
   title: "Admin Pedidos",
   description: "Consulta de pedidos generados desde el carrito.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminPedidosPage() {

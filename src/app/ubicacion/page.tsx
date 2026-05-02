@@ -13,17 +13,18 @@ import {
   Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getBusinessSettings } from "@/lib/smash-data";
+import { sanitizeMapEmbedUrl, sanitizeSocialUrl, sanitizeTextInput } from "@/lib/security";
 import { isBusinessOpen } from "@/lib/business-hours";
+import { getBusinessSettings } from "@/lib/smash-data";
 import { resolveWhatsAppNumber } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
-  title: "Ubicación",
-  description: "Encuentra Smash Fries y conoce nuestros horarios de atención.",
+  title: "Ubicacion",
+  description: "Encuentra Smash Fries y conoce nuestros horarios de atencion.",
 };
 
 const WHATSAPP_LOCATION_MESSAGE =
-  "Hola, Smash Fries. Quiero hacer un pedido o consultar la ubicación del local.";
+  "Hola, Smash Fries. Quiero hacer un pedido o consultar la ubicacion del local.";
 
 type SocialItem = {
   label: string;
@@ -34,11 +35,15 @@ type SocialItem = {
 export default async function UbicacionPage() {
   const { settings } = await getBusinessSettings();
 
-  const businessName = settings.business_name?.trim() || "Smash Fries";
+  const businessName =
+    sanitizeTextInput(settings.business_name, { maxLength: 80 }) || "Smash Fries";
   const openingTime = settings.opening_time || "17:00";
   const closingTime = settings.closing_time || "22:30";
-  const safeAddress = settings.address?.trim() || "Av. del Pacífico y Calle 10";
-  const safeCity = settings.city?.trim() || "Esmeraldas, Ecuador";
+  const safeAddress =
+    sanitizeTextInput(settings.address ?? "", { maxLength: 160 }) ||
+    "Av. del Pacifico y Calle 10";
+  const safeCity =
+    sanitizeTextInput(settings.city ?? "", { maxLength: 80 }) || "Esmeraldas, Ecuador";
   const fullAddress = `${safeAddress}, ${safeCity}`;
 
   const isOpen = isBusinessOpen(openingTime, closingTime);
@@ -52,24 +57,23 @@ export default async function UbicacionPage() {
     : null;
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
-  const mapEmbedUrl =
-    settings.map_url?.trim() ||
-    `https://www.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed`;
+  const fallbackMapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed`;
+  const mapEmbedUrl = sanitizeMapEmbedUrl(settings.map_url) ?? fallbackMapEmbedUrl;
 
   const socialItems: SocialItem[] = [
     {
       label: "Instagram",
-      href: settings.instagram_url,
+      href: sanitizeSocialUrl(settings.instagram_url, "instagram"),
       icon: Tag,
     },
     {
       label: "Facebook",
-      href: settings.facebook_url,
+      href: sanitizeSocialUrl(settings.facebook_url, "facebook"),
       icon: BadgeCheck,
     },
     {
       label: "TikTok",
-      href: settings.tiktok_url,
+      href: sanitizeSocialUrl(settings.tiktok_url, "tiktok"),
       icon: Sparkles,
     },
   ];
@@ -85,10 +89,10 @@ export default async function UbicacionPage() {
             Estamos en Esmeraldas, Ecuador
           </span>
           <h1 className="mt-4 text-3xl font-black tracking-tight text-foreground md:text-5xl">
-            Ubicación
+            Ubicacion
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground md:text-base">
-            Encuentra Smash Fries y conoce nuestros horarios de atención.
+            Encuentra Smash Fries y conoce nuestros horarios de atencion.
           </p>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-foreground/85 md:text-base">
             Estamos en Esmeraldas, Ecuador. Te esperamos con hamburguesas
@@ -105,7 +109,7 @@ export default async function UbicacionPage() {
             <article className="flex items-start gap-3 rounded-2xl border border-border/70 bg-secondary/45 p-3.5 text-sm">
               <MapPin className="mt-0.5 size-4 text-primary" />
               <div>
-                <p className="font-semibold text-foreground">Dirección</p>
+                <p className="font-semibold text-foreground">Direccion</p>
                 <p className="mt-1 leading-relaxed text-muted-foreground">{fullAddress}</p>
               </div>
             </article>
@@ -113,7 +117,7 @@ export default async function UbicacionPage() {
             <article className="flex items-start gap-3 rounded-2xl border border-border/70 bg-secondary/45 p-3.5 text-sm">
               <Clock3 className="mt-0.5 size-4 text-primary" />
               <div>
-                <p className="font-semibold text-foreground">Horario de atención</p>
+                <p className="font-semibold text-foreground">Horario de atencion</p>
                 <p className="mt-1 text-muted-foreground">
                   {openingTime} - {closingTime}
                 </p>
@@ -232,14 +236,14 @@ export default async function UbicacionPage() {
             Antes de visitarnos
           </p>
           <h2 className="mt-2 text-2xl font-black text-foreground md:text-3xl">
-            Todo listo para llegar y pedir fácil
+            Todo listo para llegar y pedir facil
           </h2>
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
           <article className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm transition-all duration-200 hover:-translate-y-[3px] hover:border-primary/35 hover:shadow-md">
             <Clock3 className="size-4 text-primary" />
-            <h3 className="mt-2 text-base font-black text-foreground">Horario de atención</h3>
+            <h3 className="mt-2 text-base font-black text-foreground">Horario de atencion</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Atendemos de {openingTime} a {closingTime}.
             </p>
@@ -247,7 +251,7 @@ export default async function UbicacionPage() {
 
           <article className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm transition-all duration-200 hover:-translate-y-[3px] hover:border-primary/35 hover:shadow-md">
             <MessageCircle className="size-4 text-primary" />
-            <h3 className="mt-2 text-base font-black text-foreground">Pedidos rápidos</h3>
+            <h3 className="mt-2 text-base font-black text-foreground">Pedidos rapidos</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Puedes escribirnos por WhatsApp para consultar disponibilidad.
             </p>
@@ -255,7 +259,7 @@ export default async function UbicacionPage() {
 
           <article className="rounded-2xl border border-border/80 bg-card/90 p-4 shadow-sm transition-all duration-200 hover:-translate-y-[3px] hover:border-primary/35 hover:shadow-md">
             <CheckCircle2 className="size-4 text-primary" />
-            <h3 className="mt-2 text-base font-black text-foreground">Ubicación fácil</h3>
+            <h3 className="mt-2 text-base font-black text-foreground">Ubicacion facil</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Abre Google Maps para llegar directamente al punto marcado.
             </p>

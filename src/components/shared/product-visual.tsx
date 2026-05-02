@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ImageOff, UtensilsCrossed } from "lucide-react";
+import { sanitizeExternalUrl } from "@/lib/security";
 import { cn } from "@/lib/utils";
 
 type ProductVisualProps = {
@@ -12,7 +13,9 @@ type ProductVisualProps = {
 };
 
 export function ProductVisual({ name, imageUrl, className }: ProductVisualProps) {
-  const normalizedImageUrl = imageUrl?.trim();
+  const normalizedImageUrl = sanitizeExternalUrl(imageUrl, {
+    allowRelativePath: true,
+  });
   const hasImage = Boolean(normalizedImageUrl);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const hasImageError = Boolean(normalizedImageUrl && failedImageUrl === normalizedImageUrl);

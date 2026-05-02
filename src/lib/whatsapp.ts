@@ -1,3 +1,4 @@
+import { clampInteger, clampNumber, sanitizePhoneNumber, sanitizeTextInput } from "@/lib/security";
 import type { CartItem, CustomerOrderData, DeliveryType } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 
@@ -7,7 +8,8 @@ const DELIVERY_TYPE_LABELS: Record<DeliveryType, string> = {
 };
 
 const DEFAULT_WHATSAPP_MESSAGE =
-  "Hola, quiero hacer un pedido en Smash Fries. ¿Me puedes ayudar con el menú y las promociones disponibles?";
+  "Hola, quiero hacer un pedido en Smash Fries. ¿Me puedes ayudar con el menu y las promociones disponibles?";
+const MAX_WHATSAPP_MESSAGE_LENGTH = 3200;
 
 type WhatsAppTotals = {
   subtotal: number;
@@ -16,7 +18,10 @@ type WhatsAppTotals = {
 };
 
 export function normalizeWhatsAppNumber(value?: string | null): string {
-  return value?.replace(/\D/g, "") ?? "";
+  return sanitizePhoneNumber(value ?? "", {
+    minDigits: 8,
+    maxDigits: 15,
+  });
 }
 
 export function resolveWhatsAppNumber(fallbackNumber?: string | null): string {
@@ -32,8 +37,14 @@ export function buildGeneralWhatsAppMessage(): string {
 
 export function calculateCartSubtotal(cart: CartItem[]): number {
   return cart.reduce((total, item) => {
-    const addonsTotal = item.addons.reduce((sum, addon) => sum + addon.price, 0);
-    return total + (item.unit_price + addonsTotal) * item.quantity;
+    const safeQuantity = clampInteger(item.quantity, 1, 20, 1);
+    const safeUnitPrice = clampNumber(item.unit_price, 0, 500, 0);
+    const addonsTotal = item.addons.reduce(
+      (sum, addon) => sum + clampNumber(addon.price, 0, 100, 0),
+      0
+    );
+
+    return total + (safeUnitPrice + addonsTotal) * safeQuantity;
   }, 0);
 }
 
@@ -54,34 +65,53 @@ export function buildWhatsAppMessage(
   orderCode: string
 ): string {
   const deliveryTypeLabel = DELIVERY_TYPE_LABELS[customerData.deliveryType];
-  const safeCustomerName = customerData.customerName.trim();
-  const safeCustomerPhone = customerData.customerPhone.trim();
-  const safeDeliveryAddress = customerData.deliveryAddress.trim();
-  const safeObservations = customerData.observations.trim();
+  const safeCustomerName = sanitizeTextInput(customerData.customerName, {
+    maxLength: 80,
+  });
+  const safeCustomerPhone = sanitizePhoneNumber(customerData.customerPhone);
+  const safeDeliveryAddress = sanitizeTextInput(customerData.deliveryAddress, {
+    maxLength: 180,
+  });
+  const safeObservations = sanitizeTextInput(customerData.observations, {
+    maxLength: 280,
+    allowNewLines: true,
+  });
+  const safeSubtotal = clampNumber(totals.subtotal, 0, 10000, 0);
+  const safeDeliveryFee = clampNumber(totals.deliveryFee, 0, 1000, 0);
+  const safeTotal = clampNumber(totals.total, 0, 10000, 0);
 
   const lines: string[] = [
     "Hola, quiero hacer un pedido en Smash Fries.",
     "",
     `Pedido #${orderCode}`,
     "",
-    `Cliente: ${safeCustomerName}`,
-    `Teléfono: ${safeCustomerPhone}`,
+    `Cliente: ${safeCustomerName || "No especificado"}`,
+    `Telefono: ${safeCustomerPhone || "No especificado"}`,
     `Tipo de entrega: ${deliveryTypeLabel}`,
   ];
 
   if (customerData.deliveryType === "delivery" && safeDeliveryAddress) {
-    lines.push(`Dirección: ${safeDeliveryAddress}`);
+    lines.push(`Direccion: ${safeDeliveryAddress}`);
   }
 
   lines.push("", "Pedido:");
 
   cart.forEach((item, index) => {
-    const addonsTotal = item.addons.reduce((sum, addon) => sum + addon.price, 0);
-    const unitWithAddons = item.unit_price + addonsTotal;
-    const lineTotal = unitWithAddons * item.quantity;
-    const addonsText = item.addons.map((addon) => addon.name.trim()).filter(Boolean).join(", ");
+    const safeQuantity = clampInteger(item.quantity, 1, 20, 1);
+    const safeItemName = sanitizeTextInput(item.name, { maxLength: 90 });
+    const safeUnitPrice = clampNumber(item.unit_price, 0, 500, 0);
+    const safeAddons = item.addons
+      .map((addon) => ({
+        name: sanitizeTextInput(addon.name, { maxLength: 60 }),
+        price: clampNumber(addon.price, 0, 100, 0),
+      }))
+      .filter((addon) => addon.name.length > 0);
+    const addonsTotal = safeAddons.reduce((sum, addon) => sum + addon.price, 0);
+    const unitWithAddons = safeUnitPrice + addonsTotal;
+    const lineTotal = unitWithAddons * safeQuantity;
+    const addonsText = safeAddons.map((addon) => addon.name).join(", ");
 
-    lines.push(`${index + 1}. ${item.quantity}x ${item.name}`);
+    lines.push(`${index + 1}. ${safeQuantity}x ${safeItemName || "Producto"}`);
     if (addonsText) {
       lines.push(`   Extras: ${addonsText}`);
     }
@@ -98,13 +128,16 @@ export function buildWhatsAppMessage(
   }
 
   lines.push("");
-  lines.push(`Subtotal: ${formatCurrency(totals.subtotal)}`);
-  lines.push(`Envío: ${formatCurrency(totals.deliveryFee)}`);
-  lines.push(`Total a pagar: ${formatCurrency(totals.total)}`);
+  lines.push(`Subtotal: ${formatCurrency(safeSubtotal)}`);
+  lines.push(`Envio: ${formatCurrency(safeDeliveryFee)}`);
+  lines.push(`Total a pagar: ${formatCurrency(safeTotal)}`);
   lines.push("");
   lines.push("¿Me confirmas disponibilidad y tiempo de entrega o retiro?");
 
-  return lines.join("\n");
+  return sanitizeTextInput(lines.join("\n"), {
+    maxLength: MAX_WHATSAPP_MESSAGE_LENGTH,
+    allowNewLines: true,
+  });
 }
 
 export function buildWhatsAppLink(
@@ -116,5 +149,10 @@ export function buildWhatsAppLink(
     return null;
   }
 
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const safeMessage = sanitizeTextInput(message, {
+    maxLength: MAX_WHATSAPP_MESSAGE_LENGTH,
+    allowNewLines: true,
+  });
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(safeMessage)}`;
 }
