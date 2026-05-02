@@ -17,16 +17,16 @@ export default function NosotrosPage() {
   return (
     <PageContainer
       title="Nosotros"
-      description="Smash Fries nace como concepto de hamburgueseria moderna para una exposicion universitaria."
+      description="Smash Fries nace como una hamburgueseria moderna, fresca y cercana."
     >
       <div className="space-y-6">
         <section className="rounded-2xl border border-border bg-card/90 p-6">
           <h2 className="text-2xl font-black text-foreground">Historia de Smash Fries</h2>
           <p className="mt-3 text-sm text-muted-foreground md:text-base">
             Smash Fries representa una marca joven inspirada en la cultura urbana,
-            la cocina rapida de calidad y la experiencia digital. Este proyecto fue
-            pensado para demostrar como un emprendimiento puede presentar menu,
-            promociones y pedidos en una web atractiva y funcional.
+            la cocina rapida de calidad y la experiencia digital. Nacio para ofrecer
+            una propuesta de menu, promociones y pedidos en una web atractiva,
+            clara y funcional.
           </p>
         </section>
 
@@ -58,7 +58,7 @@ export default function NosotrosPage() {
           <p className="mt-3 text-sm text-muted-foreground md:text-base">
             La identidad visual combina base clara tipo concreto, acentos naranja y
             rojo para llamados a la accion y contraste limpio en tipografia. El objetivo es ofrecer
-            una imagen premium, juvenil y confiable para la exposicion.
+            una imagen premium, juvenil y confiable para cada cliente.
           </p>
         </section>
       </div>

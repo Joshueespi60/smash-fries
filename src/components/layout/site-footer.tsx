@@ -68,7 +68,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         </section>
       </div>
       <div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground/70">
-        Demo academica Smash Fries - {new Date().getFullYear()}
+        Smash Fries - {new Date().getFullYear()}
       </div>
     </footer>
   );

@@ -83,7 +83,7 @@ export function AdminProductsClient({
     setProducts((current) => current.filter((item) => item.id !== product.id));
 
     if (!isSupabaseConfigured) {
-      toast.success("Producto eliminado en modo demo local");
+      toast.success("Producto eliminado en modo local");
       return;
     }
 
@@ -174,7 +174,7 @@ export function AdminProductsClient({
         toast.error("Guardado local ok, fallo de Supabase");
       }
     } else {
-      toast.success("Producto guardado en modo demo local");
+      toast.success("Producto guardado en modo local");
     }
 
     setSaving(false);

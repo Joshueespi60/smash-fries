@@ -5,7 +5,7 @@ import { getDemoOrders } from "@/lib/smash-data";
 
 export const metadata: Metadata = {
   title: "Admin Pedidos",
-  description: "Consulta de pedidos demo generados desde el carrito.",
+  description: "Consulta de pedidos generados desde el carrito.",
 };
 
 export default async function AdminPedidosPage() {
@@ -14,7 +14,7 @@ export default async function AdminPedidosPage() {
   return (
     <AdminShell
       title="Admin de Pedidos"
-      description={`Tabla de pedidos de demostracion. Fuente: ${source}.`}
+      description={`Tabla de pedidos registrados. Fuente: ${source}.`}
     >
       <OrdersTable orders={orders} />
     </AdminShell>

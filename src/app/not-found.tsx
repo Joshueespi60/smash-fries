@@ -7,7 +7,7 @@ export default function NotFound() {
         <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground/80">404</p>
         <h1 className="text-3xl font-black text-foreground">Pagina no encontrada</h1>
         <p className="text-sm text-muted-foreground">
-          La ruta que buscas no existe o fue movida dentro de esta demo.
+          La ruta que buscas no existe o fue movida.
         </p>
         <div className="flex justify-center">
           <Link

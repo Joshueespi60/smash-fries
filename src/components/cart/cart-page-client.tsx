@@ -32,9 +32,13 @@ type FormErrors = {
 
 type CartPageClientProps = {
   defaultDeliveryFee: number;
+  fallbackWhatsappNumber: string;
 };
 
-export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
+export function CartPageClient({
+  defaultDeliveryFee,
+  fallbackWhatsappNumber,
+}: CartPageClientProps) {
   const router = useRouter();
 
   const items = useCartStore((state) => state.items);
@@ -142,7 +146,11 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
         orderCode
       );
 
-      const whatsappLink = buildWhatsAppLink(message);
+      const whatsappLink = buildWhatsAppLink(message, fallbackWhatsappNumber);
+      if (!whatsappLink) {
+        toast.error("No hay numero de WhatsApp configurado.");
+        return;
+      }
       window.open(whatsappLink, "_blank", "noopener,noreferrer");
 
       const summaryForStorage = {
@@ -170,7 +178,7 @@ export function CartPageClient({ defaultDeliveryFee }: CartPageClientProps) {
       });
 
       if (saveResult.saved) {
-        toast.success("Pedido demo guardado en Supabase");
+        toast.success("Pedido guardado en Supabase");
       } else if (saveResult.source === "supabase") {
         toast.error("No se pudo guardar en Supabase, pero WhatsApp continúa");
       }

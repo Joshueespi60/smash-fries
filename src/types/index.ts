@@ -40,6 +40,12 @@ export type Promotion = {
   price: number | null;
   image_url: string | null;
   is_active: boolean;
+  badge?: string | null;
+  product_id?: string | null;
+  product_slug?: string | null;
+  active_days?: string[] | null;
+  start_time?: string | null;
+  end_time?: string | null;
   created_at?: string;
 };
 

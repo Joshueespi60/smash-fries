@@ -6,7 +6,7 @@ import { getCatalogData, getDemoOrders, getPromotions, getReviews } from "@/lib/
 
 export const metadata: Metadata = {
   title: "Admin",
-  description: "Dashboard demo con metricas y pedidos de la exposicion.",
+  description: "Dashboard con metricas y pedidos del negocio.",
 };
 
 export default async function AdminPage() {
@@ -32,18 +32,18 @@ export default async function AdminPage() {
       label: "Resenas aprobadas",
       value: reviews.filter((item) => item.is_approved).length,
     },
-    { label: "Pedidos demo", value: orders.length },
+    { label: "Pedidos registrados", value: orders.length },
   ];
 
   return (
     <AdminShell
-      title="Panel Admin Demo"
-      description={`Indicadores para la exposicion universitaria. Pedidos desde: ${source}.`}
+      title="Panel Admin"
+      description={`Indicadores del panel administrativo. Pedidos desde: ${source}.`}
     >
       <div className="space-y-6">
         <AdminStatsGrid stats={stats} />
         <section className="space-y-3">
-          <h2 className="text-xl font-black text-foreground">Tabla de pedidos demo</h2>
+          <h2 className="text-xl font-black text-foreground">Tabla de pedidos</h2>
           <OrdersTable orders={orders} />
         </section>
       </div>

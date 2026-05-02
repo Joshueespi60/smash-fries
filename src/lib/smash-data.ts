@@ -195,6 +195,12 @@ export async function getPromotions(): Promise<{ source: SourceStatus; promotion
       price: item.price,
       image_url: item.image_url,
       is_active: item.is_active,
+      badge: (item as { badge?: string | null }).badge ?? null,
+      product_id: (item as { product_id?: string | null }).product_id ?? null,
+      product_slug: (item as { product_slug?: string | null }).product_slug ?? null,
+      active_days: (item as { active_days?: string[] | null }).active_days ?? null,
+      start_time: (item as { start_time?: string | null }).start_time ?? null,
+      end_time: (item as { end_time?: string | null }).end_time ?? null,
       created_at: item.created_at,
     }));
 
@@ -344,7 +350,7 @@ export async function getDemoOrders(): Promise<{
       delivery_address: item.delivery_address,
       order_summary: item.order_summary,
       total: toNumber(item.total),
-      status: item.status ?? "demo",
+      status: item.status ?? "recibido",
       created_at: item.created_at,
     }));
 
@@ -377,7 +383,7 @@ export async function saveDemoOrder(input: {
       delivery_address: input.delivery_address,
       order_summary: input.order_summary,
       total: input.total,
-      status: "demo",
+      status: "recibido",
     });
 
     if (result.error) {

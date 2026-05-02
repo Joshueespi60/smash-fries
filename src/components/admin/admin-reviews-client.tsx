@@ -24,7 +24,7 @@ export function AdminReviewsClient({ initialReviews }: AdminReviewsClientProps) 
     }
 
     if (!isSupabaseConfigured) {
-      toast.success("Resena actualizada en modo demo local");
+      toast.success("Resena actualizada en modo local");
       return;
     }
 

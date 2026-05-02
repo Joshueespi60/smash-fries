@@ -16,7 +16,10 @@ export default async function CarritoPage() {
       title="Carrito"
       description="Ajusta cantidades, completa tus datos y envía tu pedido por WhatsApp."
     >
-      <CartPageClient defaultDeliveryFee={settings.delivery_fee} />
+      <CartPageClient
+        defaultDeliveryFee={settings.delivery_fee}
+        fallbackWhatsappNumber={settings.whatsapp_number}
+      />
     </PageContainer>
   );
 }

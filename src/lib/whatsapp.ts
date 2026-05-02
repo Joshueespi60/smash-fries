@@ -6,11 +6,29 @@ const DELIVERY_TYPE_LABELS: Record<DeliveryType, string> = {
   delivery: "Entrega a domicilio",
 };
 
+const DEFAULT_WHATSAPP_MESSAGE =
+  "Hola, quiero hacer un pedido en Smash Fries. Me puedes ayudar con el menu y las promociones disponibles?";
+
 type WhatsAppTotals = {
   subtotal: number;
   deliveryFee: number;
   total: number;
 };
+
+export function normalizeWhatsAppNumber(value?: string | null): string {
+  return value?.replace(/\D/g, "") ?? "";
+}
+
+export function resolveWhatsAppNumber(fallbackNumber?: string | null): string {
+  const envNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim();
+  const preferredNumber =
+    envNumber && envNumber.length > 0 ? envNumber : fallbackNumber ?? "";
+  return normalizeWhatsAppNumber(preferredNumber);
+}
+
+export function buildGeneralWhatsAppMessage(): string {
+  return DEFAULT_WHATSAPP_MESSAGE;
+}
 
 export function calculateCartSubtotal(cart: CartItem[]): number {
   return cart.reduce((total, item) => {
@@ -47,12 +65,12 @@ export function buildWhatsAppMessage(
     `Pedido #${orderCode}`,
     "",
     `Cliente: ${safeCustomerName}`,
-    `Teléfono: ${safeCustomerPhone}`,
+    `Telefono: ${safeCustomerPhone}`,
     `Tipo de entrega: ${deliveryTypeLabel}`,
   ];
 
   if (customerData.deliveryType === "delivery" && safeDeliveryAddress) {
-    lines.push(`Dirección: ${safeDeliveryAddress}`);
+    lines.push(`Direccion: ${safeDeliveryAddress}`);
   }
 
   lines.push("", "Pedido:");
@@ -81,16 +99,22 @@ export function buildWhatsAppMessage(
 
   lines.push("");
   lines.push(`Subtotal: ${formatCurrency(totals.subtotal)}`);
-  lines.push(`Envío: ${formatCurrency(totals.deliveryFee)}`);
+  lines.push(`Envio: ${formatCurrency(totals.deliveryFee)}`);
   lines.push(`Total a pagar: ${formatCurrency(totals.total)}`);
   lines.push("");
-  lines.push("Por favor confirmar disponibilidad y tiempo estimado.");
+  lines.push("Me confirmas disponibilidad y tiempo de entrega/retiro?");
 
   return lines.join("\n");
 }
 
-export function buildWhatsAppLink(message: string): string {
-  const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "593999999999";
-  const phone = rawPhone.replace(/\D/g, "");
+export function buildWhatsAppLink(
+  message: string,
+  fallbackNumber?: string | null
+): string | null {
+  const phone = resolveWhatsAppNumber(fallbackNumber);
+  if (!phone) {
+    return null;
+  }
+
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }

@@ -4,6 +4,7 @@ import { MapPin, MessageCircle, Navigation, Store } from "lucide-react";
 import { PageContainer } from "@/components/shared/page-container";
 import { getBusinessSettings } from "@/lib/smash-data";
 import { getBusinessStatusLabel, isBusinessOpen } from "@/lib/business-hours";
+import { resolveWhatsAppNumber } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
   title: "Ubicacion",
@@ -18,7 +19,7 @@ export default async function UbicacionPage() {
     settings.opening_time,
     settings.closing_time
   );
-  const whatsappNumber = settings.whatsapp_number.replace(/\D/g, "");
+  const whatsappNumber = resolveWhatsAppNumber(settings.whatsapp_number);
   const mapsUrl = settings.map_url
     ? settings.map_url
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -61,15 +62,17 @@ export default async function UbicacionPage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Link
-              href={`https://wa.me/${whatsappNumber}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-            >
-              <MessageCircle className="size-4" />
-              WhatsApp
-            </Link>
+            {whatsappNumber ? (
+              <Link
+                href={`https://wa.me/${whatsappNumber}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+              >
+                <MessageCircle className="size-4" />
+                WhatsApp
+              </Link>
+            ) : null}
             <Link
               href={mapsUrl}
               target="_blank"

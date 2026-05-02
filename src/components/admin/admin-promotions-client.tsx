@@ -29,7 +29,7 @@ export function AdminPromotionsClient({
     }
 
     if (!isSupabaseConfigured) {
-      toast.success("Promocion actualizada en modo demo local");
+      toast.success("Promocion actualizada en modo local");
       return;
     }
 
